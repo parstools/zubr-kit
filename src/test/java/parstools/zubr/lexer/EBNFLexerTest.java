@@ -1,13 +1,12 @@
 package parstools.zubr.lexer;
 
 import org.junit.jupiter.api.Test;
-import parstools.zubr.input.EBNFTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EBNFLexerTest {
     @Test
-    void test() {
+    void normal() {
         EBNFLexer.Token[] expected = new EBNFLexer.Token[] {
                 new EBNFLexer.Token(EBNFLexer.IDENT, "identifier"),
                 new EBNFLexer.Token(EBNFLexer.STRING, "string literal"),

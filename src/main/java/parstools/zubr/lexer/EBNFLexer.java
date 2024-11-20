@@ -12,6 +12,9 @@ public class EBNFLexer {
     public static final int COLON = 3;
     public static final int PIPE = 4;
     public static final int SEMICOLON = 5;
+    public static final int QUESTION = 6;
+    public static final int STAR = 7;
+    public static final int PLUS = 8;
 
     public EBNFLexer(String input) {
         this.input = input;
@@ -60,6 +63,15 @@ public class EBNFLexer {
             case ';':
                 index++;
                 return new Token(SEMICOLON, ";");
+            case '?':
+                index++;
+                return new Token(QUESTION, "?");
+            case '*':
+                index++;
+                return new Token(STAR, "*");
+            case '+':
+                index++;
+                return new Token(PLUS, "+");
             default:
                 throw new RuntimeException("Unexpected character: " + current);
         }
