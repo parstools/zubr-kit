@@ -6,7 +6,7 @@ public class EBNFRule {
     String nonTerminal;
     Regular production;
     public EBNFRule(String stringForm) {
-        String[] parts = stringForm.split("->");
+        String[] parts = stringForm.split(":");
         if (parts.length != 2) {
             throw new RuntimeException("Invalid rule (missing '->'): " + stringForm);
         }

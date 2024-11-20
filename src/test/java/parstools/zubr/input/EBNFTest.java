@@ -23,11 +23,11 @@ public class EBNFTest {
     void convertToLR() throws RuntimeException {
         //loops changes to left recursion, suitable to LR parsers
         String[][] testCases = {
-                {"A->a?", "A -> a", "A -> ε"},
-                {"A->a+",  "A -> A a", "A -> a"},
-                {"A->a*",  "A -> A a", "A -> ε"},
-                {"A->ab+c", "A -> a B c","B -> B b","B -> b"},
-                {"A->a(Bc)*d?", "A -> a C D","C -> C B c","C -> ε","D -> d","D -> ε"}
+                {"A:a?", "A -> a", "A -> ε"},
+                {"A:a+",  "A -> A a", "A -> a"},
+                {"A:a*",  "A -> A a", "A -> ε"},
+                {"A:ab+c", "A -> a B c","B -> B b","B -> b"},
+                {"A:a(Bc)*d?", "A -> a C D","C -> C B c","C -> ε","D -> d","D -> ε"}
         };
         for (String[] testCase : testCases) {
             String[] input = { testCase[0] };
@@ -46,11 +46,11 @@ public class EBNFTest {
     void convertToLL() throws RuntimeException {
         //loops changes to right recursion, suitable to LL parsers
         String[][] testCases = {
-                {"A->a?", "A -> a", "A -> ε"},
-                {"A->a+", "A -> a A", "A -> a"},
-                {"A->a*", "A -> a A", "A -> ε"},
-                {"A->ab+c", "A -> a B c","B -> b B","B -> b"},
-                {"A->a(Bc)*d?", "A -> a C D","C -> B c C","C -> ε","D -> d","D -> ε"}
+                {"A:a?", "A -> a", "A -> ε"},
+                {"A:a+", "A -> a A", "A -> a"},
+                {"A:a*", "A -> a A", "A -> ε"},
+                {"A:ab+c", "A -> a B c","B -> b B","B -> b"},
+                {"A:a(Bc)*d?", "A -> a C D","C -> B c C","C -> ε","D -> d","D -> ε"}
         };
         for (String[] testCase : testCases) {
             String[] input = { testCase[0] };
@@ -68,7 +68,7 @@ public class EBNFTest {
     @Test
     void simpleQuantifier() throws RuntimeException {
         String[] input = {
-                "A->a+",
+                "A:a+",
         };
         String[] expected = {
                 "A -> A a",
@@ -86,7 +86,7 @@ public class EBNFTest {
     @Test
     void simpleAlt() throws RuntimeException {
         String[] input = {
-                "A->aB|Cd|e|",
+                "A:aB|Cd|e|",
         };
         String[] expected = {
                 "A -> a B",
@@ -106,7 +106,7 @@ public class EBNFTest {
     @Test
     void noChange() throws RuntimeException {
         String[] input = {
-                "A->aBCde",
+                "A:aBCde",
         };
         String[] expected = {
                 "A -> a B C d e",
@@ -123,8 +123,8 @@ public class EBNFTest {
     @Test
     void ConcatZERO_OR_ONE() throws RuntimeException {
         String[] input = {
-                "A->AB?c",
-                "B->ac"
+                "A:AB?c",
+                "B:ac"
         };
         List<String> expected = Arrays.asList(
                 "A -> A C c",
@@ -144,7 +144,7 @@ public class EBNFTest {
     @Test
     void ConcatONE_OR_MORE_left() {
         String[] input = {
-                "A->AB+c",
+                "A:AB+c",
         };
         String[] expected = {
                 "A -> A C c",
@@ -162,7 +162,7 @@ public class EBNFTest {
 
     void ConcatMulti() throws RuntimeException {
         String[] input = {
-                "A->A*B?c+d",
+                "A:A*B?c+d",
         };
         String[] expected = {
                 "A->CBDd",
@@ -183,7 +183,7 @@ public class EBNFTest {
 
     void ConcatMultiTwoQuest() throws RuntimeException {
         String[] input = {
-                "A->A*B?c+d?",
+                "A:A*B?c+d?",
         };
         String[] expected = {
                 "A->A*B?c+d?",
@@ -199,7 +199,7 @@ public class EBNFTest {
 
     void ConcatONE_OR_MORE_right() {
         String[] input = {
-                "A->AB+c",
+                "A:AB+c",
         };
         String[] expected = {
                 "A->ACc",
@@ -218,8 +218,8 @@ public class EBNFTest {
     @Test
     void twoLines() throws RuntimeException {
         String[] input = {
-                "A->Ba*",
-                "A->b+",
+                "A:Ba*",
+                "A:b+",
         };
         String[] expected = {
                 "A -> B C",
