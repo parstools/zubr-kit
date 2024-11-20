@@ -67,7 +67,7 @@ public class EBNFtoBNFConverter {
             processQuantifierExpression((QuantifierExpression) expr, parent, symbols, generateNew);
         } else if (expr instanceof Literal) {
             Literal lit = (Literal) expr;
-            symbols.add(""+lit.getValue());//todo value ma być stringiem
+            symbols.add(lit.getValue());
         } else {
             throw new RuntimeException("Unsupported RegexExpression: " + expr.getClass().getName());
         }

@@ -7,45 +7,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class EBNFLexerTest {
     @Test
     void normal() {
-        EBNFLexer.Token[] expected = new EBNFLexer.Token[] {
-                new EBNFLexer.Token(EBNFLexer.IDENT, "identifier"),
-                new EBNFLexer.Token(EBNFLexer.STRING, "string literal"),
-                new EBNFLexer.Token(EBNFLexer.COLON, ":"),
-                new EBNFLexer.Token(EBNFLexer.PIPE, "|"),
-                new EBNFLexer.Token(EBNFLexer.SEMICOLON, ";"),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "anotherIdent"),
-                new EBNFLexer.Token(EBNFLexer.EOF, ""),
-        };
         String input = "identifier 'string literal' : | ; // comment \n /* block comment */ anotherIdent";
+        EBNFLexer.Token[] expected = new EBNFLexer.Token[] {
+                new EBNFLexer.Token(EBNFLexer.IDENT, "identifier", 0),
+                new EBNFLexer.Token(EBNFLexer.STRING, "string literal", 12),
+                new EBNFLexer.Token(EBNFLexer.COLON, ":", 28),
+                new EBNFLexer.Token(EBNFLexer.PIPE, "|",30),
+                new EBNFLexer.Token(EBNFLexer.SEMICOLON, ";", 32),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "anotherIdent", 67),
+                new EBNFLexer.Token(EBNFLexer.EOF, "", input.length()),
+        };
         EBNFLexer lexer = new EBNFLexer(input, EBNFLexer.Mode.NORMAL);
         EBNFLexer.Token token;
         for (EBNFLexer.Token expectedToken: expected) {
             EBNFLexer.Token actualToken  = lexer.nextToken();
             assertEquals(expectedToken.type, actualToken.type);
             assertEquals(expectedToken.value, actualToken.value);
+            assertEquals(expectedToken.index, actualToken.index);
         }
     }
 
     @Test
     void simple() {
-        EBNFLexer.Token[] expected = new EBNFLexer.Token[] {
-                new EBNFLexer.Token(EBNFLexer.LPAREN, "("),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "a"),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "B"),
-                new EBNFLexer.Token(EBNFLexer.RPAREN, ")"),
-                new EBNFLexer.Token(EBNFLexer.STAR, "*"),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "v"),
-                new EBNFLexer.Token(EBNFLexer.QUESTION, "?"),
-                new EBNFLexer.Token(EBNFLexer.PIPE, "|"),
-                new EBNFLexer.Token(EBNFLexer.LPAREN, "("),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "D"),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "f"),
-                new EBNFLexer.Token(EBNFLexer.RPAREN, ")"),
-                new EBNFLexer.Token(EBNFLexer.PLUS, "+"),
-                new EBNFLexer.Token(EBNFLexer.IDENT, "a"),
-                new EBNFLexer.Token(EBNFLexer.EOF, ""),
-        };
         String input = "(aB)*v?|(Df)+a";
+        EBNFLexer.Token[] expected = new EBNFLexer.Token[] {
+                new EBNFLexer.Token(EBNFLexer.LPAREN, "(", 0),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "a",1),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "B", 2),
+                new EBNFLexer.Token(EBNFLexer.RPAREN, ")", 3),
+                new EBNFLexer.Token(EBNFLexer.STAR, "*",4),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "v", 5),
+                new EBNFLexer.Token(EBNFLexer.QUESTION, "?", 6),
+                new EBNFLexer.Token(EBNFLexer.PIPE, "|", 7),
+                new EBNFLexer.Token(EBNFLexer.LPAREN, "(", 8),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "D" ,9),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "f", 10),
+                new EBNFLexer.Token(EBNFLexer.RPAREN, ")", 11),
+                new EBNFLexer.Token(EBNFLexer.PLUS, "+", 12),
+                new EBNFLexer.Token(EBNFLexer.IDENT, "a",13),
+                new EBNFLexer.Token(EBNFLexer.EOF, "", input.length()),
+        };
         EBNFLexer lexer = new EBNFLexer(input, EBNFLexer.Mode.SIMPLE);
         EBNFLexer.Token token;
         for (EBNFLexer.Token expectedToken: expected) {

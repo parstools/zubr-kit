@@ -1,5 +1,9 @@
 package parstools.zubr.lexer;
 
+import java.util.ArrayDeque;
+import java.util.LinkedList;
+import java.util.Queue;
+
 public class EBNFLexer {
     public enum Mode {
         SIMPLE,
@@ -9,6 +13,7 @@ public class EBNFLexer {
     private int index;
     private final int length;
     private final Mode mode;
+    private Queue<Token> cache = new LinkedList<>();
 
     // Token type constants
     public static final int EOF = -1;
@@ -30,10 +35,26 @@ public class EBNFLexer {
         this.length = input.length();
     }
 
+    public Token peek() {
+        if (cache.isEmpty())
+            cache.offer(nextTokenPrivate());
+        return cache.element();
+    }
+
+    public void consume() {
+        nextToken();
+    }
+
     public Token nextToken() {
+        if (cache.isEmpty())
+            cache.offer(nextTokenPrivate());
+        return cache.remove();
+    }
+
+    private Token nextTokenPrivate() {
         skipWhitespaceAndComments();
         if (index >= length) {
-            return new Token(EOF, "");
+            return new Token(EOF, "", length);
         }
 
         char current = input.charAt(index);
@@ -49,7 +70,7 @@ public class EBNFLexer {
                 index++;
             }
             String value = input.substring(start, index);
-            return new Token(IDENT, value);
+            return new Token(IDENT, value, start);
         }
 
         // String literal
@@ -61,35 +82,35 @@ public class EBNFLexer {
             }
             String value = input.substring(start, index);
             index++; // Skip closing apostrophe
-            return new Token(STRING, value);
+            return new Token(STRING, value, start);
         }
 
         // Symbols
         switch (current) {
             case ':':
                 index++;
-                return new Token(COLON, ":");
+                return new Token(COLON, ":", index-1);
             case '|':
                 index++;
-                return new Token(PIPE, "|");
+                return new Token(PIPE, "|", index-1);
             case ';':
                 index++;
-                return new Token(SEMICOLON, ";");
+                return new Token(SEMICOLON, ";", index-1);
             case '?':
                 index++;
-                return new Token(QUESTION, "?");
+                return new Token(QUESTION, "?", index-1);
             case '*':
                 index++;
-                return new Token(STAR, "*");
+                return new Token(STAR, "*", index-1);
             case '+':
                 index++;
-                return new Token(PLUS, "+");
+                return new Token(PLUS, "+", index-1);
             case '(':
                 index++;
-                return new Token(LPAREN, "(");
+                return new Token(LPAREN, "(", index-1);
             case ')':
                 index++;
-                return new Token(RPAREN, ")");
+                return new Token(RPAREN, ")", index-1);
             default:
                 throw new RuntimeException("Unexpected character: " + current);
         }
@@ -136,10 +157,12 @@ public class EBNFLexer {
     public static class Token {
         public final int type;
         public final String value;
+        public final int index;
 
-        public Token(int type, String value) {
+        public Token(int type, String value, int index) {
             this.type = type;
             this.value = value;
+            this.index = index;
         }
     }
 }

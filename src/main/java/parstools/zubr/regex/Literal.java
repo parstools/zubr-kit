@@ -3,23 +3,22 @@ package parstools.zubr.regex;
 import java.util.Set;
 
 public class Literal extends RegexExpression {
-    final private char value;
-    public Literal(char value) {
+    final private String value;
+    public Literal(String value) {
         this.value = value;
     }
 
-    public char getValue() {
+    public String getValue() {
         return value;
     }
 
     @Override
     public String toString() {
-        return Character.toString(value);
+        return value;
     }
 
     @Override
     void addLiteralsToSet(Set<String> literalSet) {
-        literalSet.add(""+value);//todo value ma być stringiem
-
+        literalSet.add(value);
     }
 }
