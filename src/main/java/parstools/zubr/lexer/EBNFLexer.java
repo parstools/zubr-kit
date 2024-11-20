@@ -1,9 +1,14 @@
 package parstools.zubr.lexer;
 
 public class EBNFLexer {
+    public enum Mode {
+        SIMPLE,
+        NORMAL
+    }
     private final String input;
     private int index;
     private final int length;
+    private final Mode mode;
 
     // Token type constants
     public static final int EOF = -1;
@@ -15,9 +20,12 @@ public class EBNFLexer {
     public static final int QUESTION = 6;
     public static final int STAR = 7;
     public static final int PLUS = 8;
+    public static final int LPAREN = 9;
+    public static final int RPAREN = 10;
 
-    public EBNFLexer(String input) {
+    public EBNFLexer(String input, Mode mode) {
         this.input = input;
+        this.mode = mode;
         this.index = 0;
         this.length = input.length();
     }
@@ -33,7 +41,11 @@ public class EBNFLexer {
         // Identifier
         if (isLetter(current)) {
             int start = index;
-            while (index < length && isLetterOrDigit(input.charAt(index))) {
+            if (mode == Mode.NORMAL) {
+                while (index < length && isLetterOrDigit(input.charAt(index))) {
+                    index++;
+                }
+            } else {
                 index++;
             }
             String value = input.substring(start, index);
@@ -72,6 +84,12 @@ public class EBNFLexer {
             case '+':
                 index++;
                 return new Token(PLUS, "+");
+            case '(':
+                index++;
+                return new Token(LPAREN, "(");
+            case ')':
+                index++;
+                return new Token(RPAREN, ")");
             default:
                 throw new RuntimeException("Unexpected character: " + current);
         }
