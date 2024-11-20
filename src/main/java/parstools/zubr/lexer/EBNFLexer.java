@@ -1,11 +1,9 @@
 package parstools.zubr.lexer;
 
-import java.util.*;
-
 public class EBNFLexer {
-    private String input;
+    private final String input;
     private int index;
-    private int length;
+    private final int length;
 
     // Token type constants
     public static final int EOF = -1;
