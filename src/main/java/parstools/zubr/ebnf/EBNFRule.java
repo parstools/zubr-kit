@@ -1,5 +1,6 @@
 package parstools.zubr.ebnf;
 
+import parstools.zubr.lexer.EBNFLexer;
 import parstools.zubr.regex.Regular;
 
 public class EBNFRule {
@@ -12,6 +13,6 @@ public class EBNFRule {
         }
         nonTerminal = parts[0].trim();
         String rhs = parts[1].trim();
-        production = new Regular(rhs);
+        production = new Regular(rhs, EBNFLexer.Mode.SIMPLE);
     }
 }

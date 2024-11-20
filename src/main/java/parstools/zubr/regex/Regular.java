@@ -1,5 +1,7 @@
 package parstools.zubr.regex;
 
+import parstools.zubr.lexer.EBNFLexer;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,9 +13,9 @@ public class Regular {
         return literalSet;
     }
 
-    public Regular(String pattern) throws RuntimeException {
-        Parser parser = new Parser(pattern);
-        this.root = parser.parse();
+    public Regular(String pattern, EBNFLexer.Mode mode) throws RuntimeException {
+        Parser parser = new Parser();
+        this.root = parser.parse(pattern, mode);
         root.addLiteralsToSet(literalSet);
     }
 

@@ -5,15 +5,19 @@ import parstools.zubr.lexer.EBNFLexer;
 class Parser {
     private EBNFLexer lexer;
 
-    public Parser(String pattern) {
-        lexer = new EBNFLexer(pattern, EBNFLexer.Mode.SIMPLE);
-    }
-
-    public RegexExpression parse() throws RuntimeException {
+    public RegexExpression parse(String pattern, EBNFLexer.Mode mode) throws RuntimeException {
+        lexer = new EBNFLexer(pattern, mode);
         RegexExpression expr = parseExpression();
         EBNFLexer.Token token = lexer.peek();
         if (token.type != EBNFLexer.EOF)
             throw new RuntimeException("Unexpected symbol in position " + token.index);
+        return expr;
+    }
+
+    public RegexExpression parse(EBNFLexer lexer) throws RuntimeException {
+        this.lexer = lexer;
+        RegexExpression expr = parseExpression();
+        EBNFLexer.Token token = lexer.peek();
         return expr;
     }
 
@@ -22,7 +26,7 @@ class Parser {
         if (lexer.peek().type == EBNFLexer.PIPE) {
             Alternation alt = new Alternation();
             alt.addAlternative(term);
-            while (lexer.peek().type != EBNFLexer.EOF && lexer.peek().type == EBNFLexer.PIPE) {
+            while (lexer.peek().type == EBNFLexer.PIPE) {
                 lexer.consume(); // consumes '|'
                 RegexExpression nextTerm = parseTerm();
                 alt.addAlternative(nextTerm);
@@ -37,7 +41,8 @@ class Parser {
         Concatenation concat = new Concatenation();
         EBNFLexer.Token token = lexer.peek();
         int type = token.type;
-        while (type != EBNFLexer.EOF && type != EBNFLexer.RPAREN && type != EBNFLexer.PIPE) {
+        while (type == EBNFLexer.IDENT || type == EBNFLexer.STRING ||
+                type == EBNFLexer.LPAREN) {
             RegexExpression factor = parseFactor();
             concat.addExpression(factor);
             token = lexer.peek();
