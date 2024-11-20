@@ -1,8 +1,6 @@
-package parstools.zubr.input;
+package parstools.zubr.ebnf;
 
 import org.junit.jupiter.api.Test;
-import parstools.zubr.ebnf.EBNFGrammar;
-import parstools.zubr.ebnf.EBNFtoBNFConverter;
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.names.LetterNameGenerator;
 
