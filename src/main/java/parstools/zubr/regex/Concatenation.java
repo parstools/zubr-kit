@@ -25,8 +25,11 @@ public class Concatenation extends RegexExpression {
                 result.append("(");
                 result.append(partStr);
                 result.append(")");
-            } else
+            } else {
+                if (!result.isEmpty())
+                    result.append(" ");
                 result.append(partStr);
+            }
         }
         return result.toString();
     }
