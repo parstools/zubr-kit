@@ -428,4 +428,13 @@ public class TestGrammars {
         lines.add("B -> b c");
         return new Grammar(lines);
     }
+
+    public static Grammar LR2_LL3_noSLL() {
+        List<String> lines = new ArrayList<>();
+        lines.add("X -> Y");
+        lines.add("X -> b Y a");
+        lines.add("Y -> c");
+        lines.add("Y -> c a");
+        return new Grammar(lines);
+    }
 }

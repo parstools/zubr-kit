@@ -53,4 +53,18 @@ public class ParsingTableTest {
         assertFalse(res2);
         assertTrue(res3);
     }
+
+    @Test
+    void test_no_SLL() {
+        Grammar g = TestGrammars.LR2_LL3_noSLL();
+        ParsingTable table = new ParsingTable(g);
+        boolean res1 = table.createLL(1);
+        boolean res2 = table.createLL(2);
+        boolean res3 = table.createLL(3);
+        boolean res4 = table.createLL(4);
+        assertFalse(res1);
+        assertFalse(res2);
+        assertFalse(res3);
+        assertFalse(res4);
+    }
 }
