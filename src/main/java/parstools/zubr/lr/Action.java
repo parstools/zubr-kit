@@ -4,7 +4,7 @@ enum ActionKind {
     SHIFT,
     REDUCTION,
     ACCEPT,
-    ERRPR,
+    ERROR,
 }
 
 public class Action {
