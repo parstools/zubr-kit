@@ -8,11 +8,11 @@ public class StatesLR0 extends States {
         super(grammar);
     }
 
-    public void createStates(Transitions transitions) {
+    public void createStates(AbstractLR abstractLR) {
         Nonterminal startNt = grammar.addStartNt();
         ItemLR0 item = new ItemLR0(startNt.rules.get(0), 0);
         State state = new StateLR0(grammar);
         state.add(item);
-        super.createStates(transitions, state);
+        super.createStates(abstractLR, state);
     }
 }

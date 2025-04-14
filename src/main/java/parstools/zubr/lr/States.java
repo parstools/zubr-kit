@@ -14,7 +14,7 @@ public class States extends ArrayList<State> {
         this.grammar = grammar;
     }
 
-    protected void createStates(Transitions transitions, State state) {
+    protected void createStates(AbstractLR abstractLR, State state) {
         Set<Long> hashSet = new HashSet<>();
         state.closure();
         add(state);
@@ -28,7 +28,7 @@ public class States extends ArrayList<State> {
                 State newState = state.goto_(symbol);
                 if (newState != null && !hashSet.contains(newState.longHash)) {
                     hashSet.add(newState.longHash);
-                    transitions.add(index, symbol, size());
+                    abstractLR.add(index, symbol, size());
                     add(newState);
                 }
             }

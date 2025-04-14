@@ -11,8 +11,8 @@ public class LRTest {
     void createStatesLR0() {
         Grammar g = TestGrammars.LRwikiLR0();
         StatesLR0 states = new StatesLR0(g);
-        Transitions transitions = new Transitions();
-        states.createStates(transitions);
+        AbstractLR lr = new AbstractLR();
+        states.createStates(lr);
         assertEquals(9, states.size());
     }
 

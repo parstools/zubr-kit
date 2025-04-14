@@ -2,7 +2,7 @@ package parstools.zubr.lr;
 
 import parstools.zubr.grammar.Grammar;
 
-public class LALR extends Transitions {
+public class LALR extends AbstractLR {
     boolean efficient;
     LALR(Grammar g) {
         if (efficient) {

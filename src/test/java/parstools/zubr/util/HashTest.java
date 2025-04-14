@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.TestGrammars;
 import parstools.zubr.lr.StatesLR0;
-import parstools.zubr.lr.Transitions;
+import parstools.zubr.lr.AbstractLR;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -76,8 +76,8 @@ public class HashTest {
     void cachedRuleHash() {
         Grammar g = TestGrammars.LRwikiLR0();
         StatesLR0 states = new StatesLR0(g);
-        Transitions transitions = new Transitions();
-        states.createStates(transitions);
+        AbstractLR lr = new AbstractLR();
+        states.createStates(lr);
         long first = states.getFirst().computeHash();
         long second = states.getFirst().computeHash();
         assertEquals(first, second);

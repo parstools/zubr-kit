@@ -5,7 +5,7 @@ import parstools.zubr.grammar.Symbol;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Transitions {
+public class AbstractLR {
     private List<RowLR> rows = new ArrayList<>();
     RowLR row(int index) {
         return rows.get(index);

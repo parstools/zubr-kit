@@ -2,7 +2,7 @@ package parstools.zubr.lr;
 
 import parstools.zubr.grammar.Grammar;
 
-public class LALRk extends Transitions {
+public class LALRk extends AbstractLR {
     int k;
     LALRk(Grammar g) {
         this.k = k;

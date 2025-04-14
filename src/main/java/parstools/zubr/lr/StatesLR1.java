@@ -9,7 +9,7 @@ public class StatesLR1 extends States {
         super(g);
     }
 
-    public void createStates(Transitions transitions) {
+    public void createStates(AbstractLR abstractLR) {
         Nonterminal startNt = grammar.addStartNt();
         ItemLR1 item = new ItemLR1(startNt.rules.get(0), 0, Grammar.EOF);
         State state = new StateLR1(grammar);
@@ -17,6 +17,6 @@ public class StatesLR1 extends States {
         sc.reset(1);
         sc.makeFirstSets1();
         sc.makeFollowSets1();
-        super.createStates(transitions, state);
+        super.createStates(abstractLR, state);
     }
 }

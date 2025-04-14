@@ -12,7 +12,7 @@ public class StatesLRk extends States{
         this.k = k;
     }
 
-    public void createStates(Transitions transitions) {
+    public void createStates(AbstractLR abstractLR) {
         Nonterminal startNt = grammar.addStartNt();
         Sequence sequence = new Sequence(grammar);
         sequence.add(-1);
@@ -22,6 +22,6 @@ public class StatesLRk extends States{
         sc.reset(k);
         sc.makeFirstSetsK(k);
         sc.makeFollowSetsK(k);
-        super.createStates(transitions, state);
+        super.createStates(abstractLR, state);
     }
 }
