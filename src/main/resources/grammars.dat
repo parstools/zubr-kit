@@ -1,3 +1,9 @@
+;from allstar-techreport
+S -> A c
+S -> A d
+A -> a A
+A -> b
+
 Expr -> Expr + Term
 Expr -> Term
 Term -> i
