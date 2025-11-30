@@ -85,19 +85,3 @@ public class TarjansAlgorithm {
         result = new ArrayList<>();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
