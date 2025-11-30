@@ -1,3 +1,5 @@
+.idea/codeStyles
+.idea/*.iml
 /target/
 .attach*
 
