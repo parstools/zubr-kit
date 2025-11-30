@@ -33,11 +33,16 @@ public class Sequence extends ArrayList<Integer> {
             return "eps";
         else {
             StringBuilder sb = new StringBuilder();
-            for (int k : this)
+            boolean start = true;
+            for (int k : this) {
+                if (!start)
+                    sb.append(" ");
+                start = false;
                 if (k == -1)
                     sb.append("$");
                 else
-                    sb.append(grammar.terminals.get(k).name + " ");
+                    sb.append(grammar.terminals.get(k).name);
+            }
             return sb.toString();
         }
     }

@@ -45,12 +45,12 @@ public class CollectTest {
         assertEquals("a", seq.toString());
 
         seq = generator.root.terminalsFrom(2,2);
-        assertEquals("ba", seq.toString());
+        assertEquals("b a", seq.toString());
         seq = generator.root.terminalsFrom(3,2);
         assertEquals("a", seq.toString());
 
         seq = generator.root.terminalsFrom(2,3);
-        assertEquals("ba", seq.toString());
+        assertEquals("b a", seq.toString());
         seq = generator.root.terminalsFrom(3,3);
         assertEquals("a", seq.toString());
     }
