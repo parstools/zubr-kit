@@ -37,7 +37,7 @@ public class Sequence extends ArrayList<Integer> {
                 if (k == -1)
                     sb.append("$");
                 else
-                    sb.append(grammar.terminals.get(k).name);
+                    sb.append(grammar.terminals.get(k).name + " ");
             return sb.toString();
         }
     }
