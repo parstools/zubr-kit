@@ -15,7 +15,6 @@ import java.util.List;
  * Converter class that transforms EBNF rules into BNF.
  */
 public class EBNFtoBNFConverter {
-    private Grammar grammar;
     private EBNFGrammar egrammar;
     boolean preferRightRecursion;
     private NameGenerator generator;
@@ -26,20 +25,20 @@ public class EBNFtoBNFConverter {
     }
 
     public Grammar convert(EBNFGrammar egrammar) throws RuntimeException {
+        Grammar grammar = new Grammar();
         this.egrammar = egrammar;
         List<EBNFRule> ebnfRules = egrammar.rules;
-        fillGrammarSymbols(egrammar);
+        fillGrammarSymbols(egrammar, grammar);
         for (EBNFRule rule : ebnfRules) {
             RegexExpression expr = rule.production.getRoot();
-            List<String> symbols = processExpression(expr, rule.nonTerminal, false);
+            List<String> symbols = processExpression(expr, rule.nonTerminal, false, grammar);
             if (expr instanceof Concatenation)
                 grammar.addRule(new Rule(grammar, rule.nonTerminal, symbols));
         }
         return grammar;
     }
 
-    private void fillGrammarSymbols(EBNFGrammar egrammar) {
-        grammar = new Grammar();
+    private void fillGrammarSymbols(EBNFGrammar egrammar, Grammar grammar) {
         for (String ntName: egrammar.nonterminals) {
             generator.registerName(ntName);
             grammar.nonterminals.add(new Nonterminal(grammar, ntName));
@@ -57,14 +56,14 @@ public class EBNFtoBNFConverter {
      * @param parent  The parent non-terminal (for generating unique names)
      * @return List of Symbols representing the processed expression
      */
-    private List<String> processExpression(RegexExpression expr, String parent, boolean generateNew) {
+    private List<String> processExpression(RegexExpression expr, String parent, boolean generateNew, Grammar grammar) {
         List<String> symbols = new ArrayList<>();
         if (expr instanceof Concatenation) {
-            processConcatenation((Concatenation) expr, parent, symbols);
+            processConcatenation((Concatenation) expr, parent, symbols, grammar);
         } else if (expr instanceof Alternation) {
-            processAlternation((Alternation) expr, parent, symbols);
+            processAlternation((Alternation) expr, parent, symbols, grammar);
         } else if (expr instanceof QuantifierExpression) {
-            processQuantifierExpression((QuantifierExpression) expr, parent, symbols, generateNew);
+            processQuantifierExpression((QuantifierExpression) expr, parent, symbols, generateNew, grammar);
         } else if (expr instanceof Literal) {
             Literal lit = (Literal) expr;
             symbols.add(lit.getValue());
@@ -74,11 +73,11 @@ public class EBNFtoBNFConverter {
         return symbols;
     }
 
-    private void processQuantifierExpression(QuantifierExpression expr, String parent, List<String> symbols, boolean generateNew) {
+    private void processQuantifierExpression(QuantifierExpression expr, String parent, List<String> symbols, boolean generateNew, Grammar grammar) {
         QuantifierExpression qexpr = expr;
         Quantifier quant = qexpr.getQuantifier();
         RegexExpression subExpr = qexpr.getExpression();
-        List<String> subSymbols = processExpression(subExpr, parent, true);
+        List<String> subSymbols = processExpression(subExpr, parent, true, grammar);
         // Depending on the quantifier, create new productions
         String nt;
         if (generateNew)
@@ -118,19 +117,19 @@ public class EBNFtoBNFConverter {
         symbols.add(nt);
     }
 
-    private void processAlternation(Alternation expr, String parent, List<String> symbols) {
+    private void processAlternation(Alternation expr, String parent, List<String> symbols, Grammar grammar) {
         Alternation alt = expr;
         for (RegexExpression alternative : alt.getAlternatives()) {
-            List<String> altSymbols = processExpression(alternative, parent, true);
+            List<String> altSymbols = processExpression(alternative, parent, true, grammar);
             grammar.addRule(new Rule(grammar, parent, altSymbols));
         }
         symbols.add(parent);
     }
 
-    private void processConcatenation(Concatenation expr, String parent, List<String> symbols) {
+    private void processConcatenation(Concatenation expr, String parent, List<String> symbols, Grammar grammar) {
         Concatenation concat = expr;
         for (RegexExpression subExpr : concat.getExpressions()) {
-            symbols.addAll(processExpression(subExpr, parent, true));
+            symbols.addAll(processExpression(subExpr, parent, true,  grammar));
         }
     }
 }
