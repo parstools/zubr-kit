@@ -32,6 +32,10 @@ public class Rule extends ZObject implements Iterable<Symbol> {
     }
 
     void add(Symbol symbol) {
+        if (symbol.terminal)
+            hasT = true;
+        else
+            hasNt = true;
         symList.add(symbol);
     }
 
@@ -132,14 +136,12 @@ public class Rule extends ZObject implements Iterable<Symbol> {
             String symbolName = scanner.next();
             Symbol symbol = grammar.findNt(symbolName);
             if (symbol!=null) {
-                hasNt = true;
             } else {
                 symbol = grammar.findT(symbolName);
                 if (symbol == null) {
                     symbol = new Terminal(grammar, symbolName);
                     grammar.terminals.add((Terminal) symbol);
                 }
-                hasT = true;
             }
             add(symbol);
         }
@@ -235,7 +237,6 @@ public class Rule extends ZObject implements Iterable<Symbol> {
                 add(t);
             } else {
                 Nonterminal nt = grammar.nonterminals.get(random.nextInt(grammar.nonterminals.size()));
-                hasNt = true;
                 add(nt);
             }
         }
