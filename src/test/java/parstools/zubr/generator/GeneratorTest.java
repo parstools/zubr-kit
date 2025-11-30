@@ -188,16 +188,13 @@ public class GeneratorTest {
         }
     }
 
-    @Disabled
     @Test
-    void output() throws FileNotFoundException {
-        Generator generator = new Generator(TestGrammars.LLstar(), 12, RuleOrder.roSort);
-        PrintWriter writer = new PrintWriter("bbbb.txt");
+    void count() {
+        Generator generator = new Generator(TestGrammars.LLstar(), 9, RuleOrder.roSort);
         int cnt = 0;
         while (generator.next()) {
-            writer.printf("%s %s%n",generator.string(), generator.parenString());
             cnt++;
         }
-        writer.close();
+        assertEquals(cnt, 617);
     }
 }
