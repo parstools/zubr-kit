@@ -1,12 +1,11 @@
 package parstools.zubr.grammar;
 
 import parstools.zubr.util.Hash;
-import parstools.zubr.util.ZObject;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public abstract class Symbol extends ZObject {
+public abstract class Symbol {
     public final boolean terminal;
     protected Grammar grammar;
     public String name;
@@ -55,9 +54,5 @@ public abstract class Symbol extends ZObject {
         byte b = (byte) (terminal? 1: 0);
         buffer.put(b);
         return buffer.array();
-    }
-
-    protected long deepHash(long seed) {
-        return shallowHash(seed);
     }
 }

@@ -1,11 +1,10 @@
 package parstools.zubr.grammar;
 
 import parstools.zubr.util.Hash;
-import parstools.zubr.util.ZObject;
 
 import java.util.*;
 
-public class Rule extends ZObject implements Iterable<Symbol> {
+public class Rule implements Iterable<Symbol> {
     private boolean computedHash;
     void invalidateHash() {
         computedHash = false;
@@ -265,22 +264,5 @@ public class Rule extends ZObject implements Iterable<Symbol> {
     @Override
     public Iterator<Symbol> iterator() {
         return symList.iterator();
-    }
-
-    @Override
-    protected byte[] getBytes() {
-        return new byte[0];
-    }
-
-    @Override
-    public long deepHash(long seed) {
-        if (computedHash)
-            return hash;
-        for (Symbol symbol: symList) {
-            seed = symbol.deepHash(seed);
-        }
-        hash = seed;
-        computedHash = true;
-        return seed;
     }
 }

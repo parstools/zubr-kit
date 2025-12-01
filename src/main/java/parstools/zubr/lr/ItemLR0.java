@@ -3,11 +3,10 @@ package parstools.zubr.lr;
 import parstools.zubr.grammar.Nonterminal;
 import parstools.zubr.grammar.Rule;
 import parstools.zubr.grammar.Symbol;
-import parstools.zubr.util.ZObject;
 
 import static java.util.Objects.hash;
 
-public class ItemLR0 extends ZObject {
+public class ItemLR0 {
     Rule rule;
     int dotPosition;
 
@@ -46,16 +45,5 @@ public class ItemLR0 extends ZObject {
     public ItemLR0 goto_() {
         ItemLR0 result = new ItemLR0(rule, dotPosition + 1);
         return result;
-    }
-
-    @Override
-    protected byte[] getBytes() {
-        return intToByteArray(dotPosition);
-    }
-
-    @Override
-    protected long deepHash(long seed) {
-        seed = rule.deepHash(seed);
-        return shallowHash(seed);
     }
 }

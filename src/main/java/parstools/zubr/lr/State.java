@@ -4,30 +4,16 @@ import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.Nonterminal;
 import parstools.zubr.grammar.Rule;
 import parstools.zubr.grammar.Symbol;
-import parstools.zubr.util.ZObject;
 
 import java.util.HashSet;
 
-public abstract class State extends ZObject {
+public abstract class State {
     private HashSet<ItemLR0> itemSet = new HashSet<>();
     Grammar grammar;
     long longHash = 0;
 
     State(Grammar grammar) {
         this.grammar = grammar;
-    }
-
-    @Override
-    protected byte[] getBytes() {
-        return new byte[0];
-    }
-
-    @Override
-    protected long deepHash(long seed) {
-        for (ItemLR0 item: itemSet) {
-            seed = item.deepHash(seed);
-        }
-        return seed;
     }
 
     public static long ror(long value, int shift) {
