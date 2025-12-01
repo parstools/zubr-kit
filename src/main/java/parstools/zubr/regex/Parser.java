@@ -9,7 +9,7 @@ class Parser {
         lexer = new EBNFLexer(pattern, mode);
         RegexExpression expr = parseExpression();
         EBNFLexer.Token token = lexer.peek();
-        if (token.type != EBNFLexer.EOF)
+        if (token.type != EBNFLexer.EOF_TOKEN)
             throw new RuntimeException("Unexpected symbol in position " + token.index);
         return expr;
     }
@@ -61,7 +61,7 @@ class Parser {
         RegexExpression base = parseBase();
         EBNFLexer.Token token = lexer.peek();
         int type = token.type;
-        if (type != EBNFLexer.EOF) {
+        if (type != EBNFLexer.EOF_TOKEN) {
             if (type == EBNFLexer.STAR || type == EBNFLexer.PLUS || type == EBNFLexer.QUESTION) {
                 lexer.consume();
                 Quantifier quant = switch (type) {

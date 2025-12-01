@@ -1,6 +1,5 @@
 package parstools.zubr.lexer;
 
-import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -16,7 +15,7 @@ public class EBNFLexer {
     private Queue<Token> cache = new LinkedList<>();
 
     // Token type constants
-    public static final int EOF = -1;
+    public static final int EOF_TOKEN = -1;
     public static final int IDENT = 1;
     public static final int STRING = 2;
     public static final int COLON = 3;
@@ -54,7 +53,7 @@ public class EBNFLexer {
     private Token nextTokenPrivate() {
         skipWhitespaceAndComments();
         if (index >= length) {
-            return new Token(EOF, "", length);
+            return new Token(EOF_TOKEN, "", length);
         }
 
         char current = input.charAt(index);

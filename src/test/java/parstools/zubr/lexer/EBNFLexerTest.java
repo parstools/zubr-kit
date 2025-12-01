@@ -15,7 +15,7 @@ public class EBNFLexerTest {
                 new EBNFLexer.Token(EBNFLexer.PIPE, "|",30),
                 new EBNFLexer.Token(EBNFLexer.SEMICOLON, ";", 32),
                 new EBNFLexer.Token(EBNFLexer.IDENT, "anotherIdent", 67),
-                new EBNFLexer.Token(EBNFLexer.EOF, "", input.length()),
+                new EBNFLexer.Token(EBNFLexer.EOF_TOKEN, "", input.length()),
         };
         EBNFLexer lexer = new EBNFLexer(input, EBNFLexer.Mode.NORMAL);
         EBNFLexer.Token token;
@@ -45,7 +45,7 @@ public class EBNFLexerTest {
                 new EBNFLexer.Token(EBNFLexer.RPAREN, ")", 11),
                 new EBNFLexer.Token(EBNFLexer.PLUS, "+", 12),
                 new EBNFLexer.Token(EBNFLexer.IDENT, "a",13),
-                new EBNFLexer.Token(EBNFLexer.EOF, "", input.length()),
+                new EBNFLexer.Token(EBNFLexer.EOF_TOKEN, "", input.length()),
         };
         EBNFLexer lexer = new EBNFLexer(input, EBNFLexer.Mode.SIMPLE);
         EBNFLexer.Token token;
