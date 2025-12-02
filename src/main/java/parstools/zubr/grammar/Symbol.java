@@ -1,7 +1,5 @@
 package parstools.zubr.grammar;
 
-import parstools.zubr.util.Hash;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -28,18 +26,6 @@ public abstract class Symbol {
         this.grammar = grammar;
         this.terminal = terminal;
         this.name = name;
-    }
-
-    public int hashCodeShallow() {
-        Hash h = new Hash();
-        h.add(terminal?1:0);
-        h.addString(name);
-        return h.hash();
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCodeShallow();
     }
 
     @Override

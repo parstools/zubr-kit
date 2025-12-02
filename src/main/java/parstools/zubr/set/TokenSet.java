@@ -2,7 +2,6 @@ package parstools.zubr.set;
 
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.Symbol;
-import parstools.zubr.util.Hash;
 
 public class TokenSet {
     int maxLen;
@@ -206,15 +205,6 @@ public class TokenSet {
             return "{}";
         else
             return sb.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        Hash h = new Hash();
-        for (int n = 0; n < 3; n++)
-            for (Tier t : tiers[n])
-                h.add(t.hashCode());
-        return h.hash();
     }
 
     public boolean addEpsilonBuild() {

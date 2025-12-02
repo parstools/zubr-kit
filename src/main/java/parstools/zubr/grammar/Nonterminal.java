@@ -1,7 +1,5 @@
 package parstools.zubr.grammar;
 
-import parstools.zubr.util.Hash;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,14 +71,6 @@ public class Nonterminal extends Symbol {
             }
         }
         return maxLen != old || changed;
-    }
-
-    @Override
-    public int hashCode() {
-        Hash h = new Hash();
-        for (Rule rule : rules)
-            h.add(rule.hashCode());
-        return h.hash();
     }
 
     public boolean needsFactorization(int k) {

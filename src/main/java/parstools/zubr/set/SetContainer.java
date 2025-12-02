@@ -6,7 +6,6 @@ import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.Nonterminal;
 import parstools.zubr.grammar.Rule;
 import parstools.zubr.grammar.Symbol;
-import parstools.zubr.util.Hash;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -41,16 +40,6 @@ public class SetContainer {
             sb.append(ts.toString());
         sb.append("]");
         return sb.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        Hash h = new Hash();
-        for (TokenSet ts : firstSets)
-            h.add(ts.hashCode());
-        for (TokenSet ts : followSets)
-            h.add(ts.hashCode());
-        return h.hash();
     }
 
     public SetContainer(Grammar grammar) {

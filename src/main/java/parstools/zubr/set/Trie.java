@@ -2,7 +2,6 @@ package parstools.zubr.set;
 
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.Symbol;
-import parstools.zubr.util.Hash;
 
 import java.util.*;
 
@@ -134,17 +133,6 @@ public class Trie {
             sb.append(stringList.get(i));
         }
         return sb.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        Hash h = new Hash();
-        for (Map.Entry<Integer, Trie> entry : map.entrySet()) {
-            int t = entry.getKey();
-            h.add(t);
-            h.add(entry.getValue().hashCode());
-        }
-        return h.hash();
     }
 
     public Trie clone() {

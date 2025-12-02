@@ -3,7 +3,6 @@ package parstools.zubr.grammar;
 import parstools.zubr.graph.DG;
 import parstools.zubr.graph.JohnsonsAlgorithm;
 import parstools.zubr.graph.VertexEdge;
-import parstools.zubr.util.Hash;
 import parstools.zubr.util.Name;
 
 import java.util.*;
@@ -289,17 +288,6 @@ public class Grammar implements Cloneable {
             return 1;
         else
             return symbol.minLen;
-    }
-
-    @Override
-    public int hashCode() {
-        Hash h = new Hash();
-        for (int i = 0; i < nonterminals.size(); i++) {
-            Nonterminal nt = nonterminals.get(i);
-            h.add(i);
-            h.add(nt.hashCode());
-        }
-        return h.hash();
     }
 
     public List<String> toList() {

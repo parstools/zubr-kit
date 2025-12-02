@@ -8,7 +8,7 @@ public final class HashBuilder64 {
 
     public HashBuilder64() {}
 
-    public long value() {
+    public long hash() {
         return h;
     }
 

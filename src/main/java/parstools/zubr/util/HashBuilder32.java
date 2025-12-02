@@ -8,7 +8,7 @@ public final class HashBuilder32 {
     public HashBuilder32() {
     }
 
-    public int value() {
+    public int hash() {
         return h;
     }
 
