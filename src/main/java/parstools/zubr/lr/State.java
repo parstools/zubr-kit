@@ -4,13 +4,13 @@ import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.Nonterminal;
 import parstools.zubr.grammar.Rule;
 import parstools.zubr.grammar.Symbol;
+import parstools.zubr.util.HashBuilder64;
 
 import java.util.HashSet;
 
 public abstract class State {
     private HashSet<ItemLR0> itemSet = new HashSet<>();
     Grammar grammar;
-    long longHash = 0;
 
     State(Grammar grammar) {
         this.grammar = grammar;
@@ -32,9 +32,13 @@ public abstract class State {
             }
             isModified = itemSet.addAll(newItems);
         } while (isModified);
-        longHash = 0;
+    }
+
+    long longHash() {
+        HashBuilder64 hb = new HashBuilder64();
         for (ItemLR0 item: itemSet)
-            longHash = ror(longHash,10) ^  item.hashCode();
+            hb.addInt(item.hashCode());
+        return hb.hash();
     }
 
     abstract void add(HashSet<ItemLR0> newItems, Rule rule, ItemLR0 itemFrom);

@@ -26,8 +26,13 @@ public class States extends ArrayList<State> {
             state = get(index);
             for (Symbol symbol: symList) {
                 State newState = state.goto_(symbol);
-                if (newState != null && !hashSet.contains(newState.longHash)) {
-                    hashSet.add(newState.longHash);
+                long lh;
+                if (newState != null)
+                    lh = newState.longHash();
+                else
+                    lh = 0;
+                if (newState != null && !hashSet.contains(lh)) {
+                    hashSet.add(lh);
                     abstractLR.add(index, symbol, size());
                     add(newState);
                 }
