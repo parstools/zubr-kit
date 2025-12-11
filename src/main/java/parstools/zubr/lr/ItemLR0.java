@@ -3,6 +3,7 @@ package parstools.zubr.lr;
 import parstools.zubr.grammar.Nonterminal;
 import parstools.zubr.grammar.Rule;
 import parstools.zubr.grammar.Symbol;
+import parstools.zubr.util.HashBuilder64;
 
 import static java.util.Objects.hash;
 
@@ -18,6 +19,10 @@ public class ItemLR0 {
     @Override
     public int hashCode() {
         return hash(rule) ^ hash(dotPosition);
+    }
+
+    long longHash() {
+        return rule.longHash() ^ hash(dotPosition);
     }
 
     @Override

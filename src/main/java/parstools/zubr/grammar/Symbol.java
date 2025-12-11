@@ -1,5 +1,7 @@
 package parstools.zubr.grammar;
 
+import parstools.zubr.util.HashBuilder64;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -9,6 +11,12 @@ public abstract class Symbol {
     public String name;
     public int minLen;
     public int maxLen;
+
+    public long longHash() {
+        HashBuilder64 hb = new HashBuilder64();
+        hb.addString(name);
+        return hb.hash();
+    }
 
     public static int compare(Symbol symbol0, Symbol symbol1) {
         if (symbol0.terminal!=symbol1.terminal) {

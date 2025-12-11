@@ -35,10 +35,11 @@ public abstract class State {
     }
 
     long longHash() {
-        HashBuilder64 hb = new HashBuilder64();
+        //permutations have the same hash
+        long result = 0;
         for (ItemLR0 item: itemSet)
-            hb.addInt(item.hashCode());
-        return hb.hash();
+            result  ^= item.longHash();
+        return result;
     }
 
     abstract void add(HashSet<ItemLR0> newItems, Rule rule, ItemLR0 itemFrom);

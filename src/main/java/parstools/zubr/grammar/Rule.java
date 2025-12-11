@@ -1,6 +1,7 @@
 package parstools.zubr.grammar;
 
 import parstools.zubr.util.HashBuilder32;
+import parstools.zubr.util.HashBuilder64;
 
 import java.util.*;
 
@@ -151,6 +152,14 @@ public class Rule implements Iterable<Symbol> {
         HashBuilder32 hb = new HashBuilder32();
         for (Symbol symbol : symList) {
             hb.addInt(symbol.hashCode());
+        }
+        return hb.hash();
+    }
+
+    public long longHash() {
+        HashBuilder64 hb = new HashBuilder64();
+        for (Symbol symbol : symList) {
+            hb.addLong(symbol.longHash());
         }
         return hb.hash();
     }
