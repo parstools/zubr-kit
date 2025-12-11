@@ -6,7 +6,7 @@ import parstools.zubr.grammar.Symbol;
 import java.util.*;
 
 public class Trie {
-    private TreeMap<Integer, Trie> map = new TreeMap<>();
+    private final SortedIntMap<Trie> map = new SortedIntMap<>();
     private int h;
 
     Trie(Grammar grammar, int h) {
