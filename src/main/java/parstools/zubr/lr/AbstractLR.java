@@ -9,13 +9,21 @@ import java.util.*;
 public class AbstractLR {
     protected enum ReductionPolicy { ALL_TERMINALS, FOLLOW, ITEM_LOOKAHEAD }
     private final ReductionPolicy policy;
+    private final int lookaheadLength;
     private final List<RowLR> rows = new ArrayList<>();
     private final List<Rule> rules = new ArrayList<>();
     private final Map<Rule, Integer> ruleNumbers = new IdentityHashMap<>();
     private States states;
 
     public AbstractLR() { this(ReductionPolicy.ALL_TERMINALS); }
-    protected AbstractLR(ReductionPolicy policy) { this.policy = policy; }
+    protected AbstractLR(ReductionPolicy policy) { this(policy, 1); }
+    protected AbstractLR(ReductionPolicy policy, int lookaheadLength) {
+        if (lookaheadLength < 1) throw new IllegalArgumentException("k must be positive");
+        this.policy = policy;
+        this.lookaheadLength = lookaheadLength;
+    }
+
+    public int lookaheadLength() { return lookaheadLength; }
 
     public RowLR row(int index) { return rows.get(index); }
     public List<State> states() { return Collections.unmodifiableList(states); }
@@ -48,10 +56,21 @@ public class AbstractLR {
             RowLR row = new RowLR();
             rows.add(row);
             state.transitions.forEach((symbol, target) -> {
-                if (symbol.terminal) row.addAction(List.of(symbol.getIndex()), Action.shift(target));
+                if (symbol.terminal) {
+                    if (lookaheadLength == 1)
+                        row.addAction(List.of(symbol.getIndex()), Action.shift(target));
+                }
                 else row.addGoto(symbol.getIndex(), target);
             });
             for (ItemLR0 item : state.items()) {
+                if (lookaheadLength > 1 && item.symbolAfterDot() instanceof Terminal terminal) {
+                    // A shift is enabled by FIRST_k(aβu), not every word starting with a.
+                    ItemLRk context = (ItemLRk) item;
+                    int target = state.transitions.get(terminal);
+                    for (Sequence word : ((StatesLRk) collection).firstAfter(
+                            item.rule, item.dotPosition, context.lookahead()))
+                        row.addAction(word, Action.shift(target));
+                }
                 if (!item.completed()) continue;
                 if (item.rule == collection.startRule) {
                     row.addAction(List.of(-1), Action.accept());
@@ -77,13 +96,11 @@ public class AbstractLR {
     public List<Conflict> conflicts() {
         List<Conflict> result = new ArrayList<>();
         for (int i = 0; i < rows.size(); i++)
-            for (var cell : rows.get(i).actions().entrySet())
-                if (cell.getValue().size() > 1)
-                    result.add(new Conflict(i, cell.getKey(), cell.getValue()));
+            result.addAll(rows.get(i).conflicts(i));
         return List.copyOf(result);
     }
 
-    public boolean isConflictFree() { return conflicts().isEmpty(); }
+    public boolean isConflictFree() { return rows.stream().noneMatch(RowLR::hasConflicts); }
 
     /**
      * Recognizes a list of terminal names (for example List.of("id", "+", "id")).
@@ -102,7 +119,7 @@ public class AbstractLR {
         stack.add(0);
         int position = 0;
         while (true) {
-            Set<Action> cell = row(stack.getLast()).actions(input.get(position));
+            Set<Action> cell = row(stack.getLast()).actionsAt(input, position, lookaheadLength);
             if (cell.isEmpty()) return false;
             Action action = cell.iterator().next();
             switch (action.kind()) {

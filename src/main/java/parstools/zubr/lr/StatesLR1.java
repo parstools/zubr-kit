@@ -5,6 +5,9 @@ import parstools.zubr.grammar.Grammar;
 public class StatesLR1 extends States {
     public StatesLR1(Grammar grammar) { super(grammar); }
 
+    @Override
+    protected State newState() { return new StateLR1(this); }
+
     public void createStates(AbstractLR parser) {
         sc.reset(1);
         sc.makeFirstSets1();

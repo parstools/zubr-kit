@@ -18,6 +18,34 @@ public class States extends ArrayList<State> {
         startRule = grammar.addStartNt().rules.getFirst();
     }
 
+    protected State newState() { return new StateLR0(this); }
+
+    /** Union exact item contexts and remap transitions, preserving the canonical collection. */
+    void mergeCores(List<State> canonical) {
+        clear();
+        Map<Set<ItemLR0>, Integer> groups = new LinkedHashMap<>();
+        int[] target = new int[canonical.size()];
+        for (int i = 0; i < target.length; i++) {
+            State source = canonical.get(i);
+            Integer group = groups.get(source.core());
+            if (group == null) {
+                group = size();
+                groups.put(source.core(), group);
+                add(newState());
+            }
+            target[i] = group;
+            for (ItemLR0 item : source.items()) get(group).add(item);
+        }
+        for (int i = 0; i < target.length; i++) {
+            State state = get(target[i]);
+            canonical.get(i).transitions.forEach((symbol, oldTarget) -> {
+                Integer previous = state.transitions.putIfAbsent(symbol, target[oldTarget]);
+                if (previous != null && previous != target[oldTarget])
+                    throw new IllegalStateException("Inconsistent transitions between merged cores");
+            });
+        }
+    }
+
     protected void createStates(AbstractLR parser, State initial) {
         clear();
         initial.closure();

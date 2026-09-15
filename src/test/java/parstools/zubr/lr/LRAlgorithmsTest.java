@@ -142,7 +142,7 @@ class LRAlgorithmsTest {
     }
 
     @Test
-    void lookaheadWordsAreImmutableAndKConstructionIsExplicitlyUnsupported() {
+    void lookaheadWordsAreImmutableAndInvalidKIsRejected() {
         Grammar grammar = LRReferenceTablesTest.cc();
         Rule rule = grammar.nonterminals.getFirst().rules.getFirst();
         Sequence sequence = new Sequence(grammar);
@@ -158,10 +158,9 @@ class LRAlgorithmsTest {
         assertEquals(Set.of(Action.reduce(1)), row.actions(original));
         assertThrows(UnsupportedOperationException.class, () -> item.lookahead().clear());
         assertThrows(UnsupportedOperationException.class, () -> row.actions(original).clear());
-        assertThrows(UnsupportedOperationException.class, () -> new LRk(grammar, 2));
-        assertThrows(UnsupportedOperationException.class, () -> new LALRk(grammar, 2));
-        assertThrows(UnsupportedOperationException.class,
-                () -> new StatesLRk(grammar, 2).createStates(new AbstractLR()));
+        assertThrows(IllegalArgumentException.class, () -> new LRk(grammar, 0));
+        assertThrows(IllegalArgumentException.class, () -> new LALRk(grammar, -1));
+        assertThrows(IllegalArgumentException.class, () -> new StatesLRk(grammar, 0));
     }
 
     @Test

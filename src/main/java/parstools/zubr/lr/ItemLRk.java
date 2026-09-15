@@ -4,7 +4,7 @@ import parstools.zubr.grammar.Rule;
 import parstools.zubr.set.Sequence;
 import java.util.List;
 
-/** Immutable lookahead word; representation only, not an LR(k) construction algorithm. */
+/** Immutable lookahead word, shared by canonical LR(1) and LR(k) items. */
 public class ItemLRk extends ItemLR0 {
     private final List<Integer> lookahead;
 
@@ -12,7 +12,7 @@ public class ItemLRk extends ItemLR0 {
         this(rule, dotPosition, (List<Integer>) sequence);
     }
 
-    protected ItemLRk(Rule rule, int dotPosition, List<Integer> lookahead) {
+    public ItemLRk(Rule rule, int dotPosition, List<Integer> lookahead) {
         super(rule, dotPosition);
         this.lookahead = List.copyOf(lookahead);
     }

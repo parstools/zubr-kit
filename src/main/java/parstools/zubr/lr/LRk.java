@@ -2,13 +2,10 @@ package parstools.zubr.lr;
 
 import parstools.zubr.grammar.Grammar;
 
-/** Reserved for future LR(k) construction. */
+/** Canonical LR(k), k >= 1, with exact lookahead words and sparse ACTION tries. */
 public class LRk extends AbstractLR {
-    public LRk() {
-        throw new UnsupportedOperationException("LR(k) construction is not implemented");
-    }
-
     public LRk(Grammar grammar, int k) {
-        throw new UnsupportedOperationException("LR(k) construction is not implemented");
+        super(ReductionPolicy.ITEM_LOOKAHEAD, k);
+        new StatesLRk(grammar, k).createStates(this);
     }
 }
