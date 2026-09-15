@@ -6,8 +6,8 @@ import parstools.zubr.grammar.Rule;
 import java.util.HashSet;
 
 public class StateLRk extends State {
-    StateLRk(Grammar grammar) {
-        super(grammar);
+    StateLRk(States owner) {
+        super(owner);
     }
 
     @Override

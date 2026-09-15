@@ -2,6 +2,7 @@ package parstools.zubr.lr;
 
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.grammar.Symbol;
+import parstools.zubr.set.SetContainer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,8 +11,10 @@ import java.util.Set;
 
 public class States extends ArrayList<State> {
     Grammar grammar;
+    SetContainer sc;
     public States(Grammar grammar) {
         this.grammar = grammar;
+        sc = new SetContainer(grammar);
     }
 
     protected void createStates(AbstractLR abstractLR, State state) {

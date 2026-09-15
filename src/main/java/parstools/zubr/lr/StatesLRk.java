@@ -17,7 +17,7 @@ public class StatesLRk extends States{
         Sequence sequence = new Sequence(grammar);
         sequence.add(-1);
         ItemLRk item = new ItemLRk(startNt.rules.get(0), 0, sequence);
-        State state = new StateLRk(grammar);
+        State state = new StateLRk(this);
         SetContainer sc = new SetContainer(grammar);
         sc.reset(k);
         sc.makeFirstSetsK(k);

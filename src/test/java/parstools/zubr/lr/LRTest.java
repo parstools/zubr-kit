@@ -30,6 +30,15 @@ public class LRTest {
         parser.row(0).toString();
     }
 
+    @Test
+    void createStatesLR1() {
+        Grammar g = TestGrammars.LR1();
+        StatesLR1 states = new StatesLR1(g);
+        AbstractLR lr = new AbstractLR();
+        states.createStates(lr);
+        assertEquals(10, states.size());
+    }
+
     void LR1() {
         Grammar g = TestGrammars.LRwikiLR1();
         LR1 parser = new LR1(g);

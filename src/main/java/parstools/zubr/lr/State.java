@@ -8,12 +8,16 @@ import parstools.zubr.util.HashBuilder64;
 
 import java.util.HashSet;
 
+import static java.io.IO.println;
+
 public abstract class State {
     private HashSet<ItemLR0> itemSet = new HashSet<>();
+    States owner;
     Grammar grammar;
 
-    State(Grammar grammar) {
-        this.grammar = grammar;
+    State(States owner) {
+        this.owner = owner;
+        this.grammar = owner.grammar;
     }
 
     public static long ror(long value, int shift) {
@@ -45,7 +49,7 @@ public abstract class State {
     abstract void add(HashSet<ItemLR0> newItems, Rule rule, ItemLR0 itemFrom);
 
     public State goto_(Symbol symbol) {
-        State newState = new StateLR0(grammar);
+        State newState = new StateLR0(owner);
         for (ItemLR0 item: itemSet) {
             Symbol symbol1 = item.symbolAfterDot();
             if (symbol1 == symbol)

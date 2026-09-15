@@ -354,6 +354,15 @@ public class TestGrammars {
         return new Grammar(lines);
     }
 
+    //Aho, Lam, Sethi,Ullman 4.54
+    public static Grammar LR1() {
+        List<String> lines = new ArrayList<>();
+        lines.add("S -> C C");
+        lines.add("C -> c C");
+        lines.add("C -> d");
+        return new Grammar(lines);
+    }
+
     public static Grammar LRwikiSLR() {
         List<String> lines = new ArrayList<>();
         lines.add("E -> A 1");

@@ -11,7 +11,7 @@ public class StatesLR0 extends States {
     public void createStates(AbstractLR abstractLR) {
         Nonterminal startNt = grammar.addStartNt();
         ItemLR0 item = new ItemLR0(startNt.rules.getFirst(), 0);
-        State state = new StateLR0(grammar);
+        State state = new StateLR0(this);
         state.add(item);
         super.createStates(abstractLR, state);
     }
