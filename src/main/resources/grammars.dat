@@ -227,6 +227,11 @@ X -> b Y a
 Y -> c
 Y -> c a
 
+;LALR(1) has a shift/reduce conflict; LALR(2) is conflict-free. Both have 6 states.
+S -> A a
+A -> c
+A -> c a
+
 ;2-4-Parser-LR(1)-czesc-2.pdf
 S -> S a S b
 S ->
