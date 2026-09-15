@@ -1,7 +1,7 @@
 # LR parser construction
 
-The `parstools.zubr.lr` package builds LR(0), SLR(1), canonical LR(1),
-and LALR(1) automata and ACTION/GOTO tables. It also provides a recognizer
+The `parstools.zubr.lr` package builds LR(0), SLR(1), canonical LR(k),
+and LALR(k) automata and ACTION/GOTO tables for k >= 1. It also provides a recognizer
 for token lists. It does not yet build syntax trees or execute semantic actions.
 
 ## Usage
@@ -60,6 +60,8 @@ are separate from `Rule.index`, which is local to a nonterminal.
 | SLR(1) | LR(0) closure and GOTO | FOLLOW of the production's left-hand side |
 | LR(1) | Canonical LR(1) closure and GOTO | The completed item's lookahead |
 | LALR(1) | Canonical LR(1) states merged by LR(0) core | Union of the merged items' lookaheads |
+| LR(k) | Canonical LR(k) closure and GOTO | The completed item's lookahead word |
+| LALR(k) | Canonical LR(k) states merged by LR(0) core | Union of the merged items' lookahead words |
 
 LR(1) closure expands `[A → α · B β, a]` using `FIRST(βa)`. The existing
 `SetContainer.addFirstOfRule1` computes FIRST of the suffix. If that suffix
@@ -92,19 +94,91 @@ extra nonterminal to its public nonterminal list or renumber its symbols.
 Do not mutate the grammar after constructing a parser: items and reductions
 retain the original production and symbol identities.
 
-## Extension to k > 1
+## LR(k) and sparse lookahead decisions
 
-The common item representation stores lookahead words as immutable
-`List<Integer>` values, and ACTION cells use the same word keys.
-The closure/state factory and table reduction policy are separate from
-canonical-state discovery. These are extension points for integrating the
-existing FIRST(k)/FOLLOW(k) implementation later.
+```java
+Grammar grammar = new Grammar(List.of(
+        "X -> Y",
+        "X -> b Y a",
+        "Y -> c",
+        "Y -> c a"));
 
-There is deliberately no LR(k) or LALR(k) construction yet. Their placeholder
-constructors and `StatesLRk.createStates` throw
-`UnsupportedOperationException` rather than returning incomplete tables.
-Future support must add the appropriate closure and table algorithms, as well
-as multi-token lookup in the recognizer; a longer key alone is not sufficient.
+assert !new LRk(grammar, 1).isConflictFree();
+LRk parser = new LRk(grammar, 2);
+assert parser.isConflictFree();
+assert parser.accepts(List.of("c"));
+assert parser.accepts(List.of("c", "a"));
+assert parser.accepts(List.of("b", "c", "a"));
+assert parser.accepts(List.of("b", "c", "a", "a"));
+assert !parser.accepts(List.of("b", "c"));
+```
+
+`new LRk(grammar, k)` requires a positive k. The generic k=1 construction
+produces the same tables as `LR1`. An item contains an immutable lookahead word:
+
+- k terminals without EOF; or
+- zero to k-1 terminals followed by a single EOF marker.
+
+EOF counts towards the maximum word length and is never repeated or padded.
+For k=3, examples include `a b c`, `a b $`, `a $`, and `$`.
+The synthetic initial item is `[S′ → · S, $]` for every k.
+
+Closure expands `[A → α · B β, u]` with `[B → · γ, v]` for each
+`v ∈ FIRST_k(βu)`. `StatesLRk` calls the existing
+`SetContainer.makeFirstSetsK`, caches suffix sets computed by
+`addFirstOfRuleK`, and concatenates them with each item's local context using
+`TokenSet.concat`. Short unfinished suffixes remain in the BUILD tier until
+that concatenation. Only actual words are extracted; global FOLLOW sets are
+not substituted for local LR contexts.
+
+For k>1, shift actions also need the complete lookahead context:
+`[A → α · a β, u]` enables shift only on words in `FIRST_k(aβu)`.
+The shift consumes one token, even though the decision inspects up to k.
+For k=1 the existing terminal-transition rule is retained.
+Reduction is entered on the completed item's word, and acceptance only on EOF.
+For the example above, after `b c`, lookahead `a $` reduces `Y → c`,
+whereas `a a` shifts. Enabling shift for every word starting with `a`
+would introduce an incorrect conflict.
+
+### Storage and lookup
+
+`RowLR` stores ACTION as a trie using the existing `SortedIntMap` for
+terminal edges. Common prefixes share nodes; missing words occupy no cells.
+Construction never enumerates the alphabet's full Cartesian power.
+The recognizer follows one edge per lookahead token and stops at k, EOF,
+or a missing edge. It does not allocate a lookahead tuple at every decision.
+It validates the entire relevant path rather than treating an incomplete
+prefix as an action.
+
+Use `row.actions(List.of(token1, token2))` for an exact word lookup, or
+`row.actionRoot().next(token1).next(token2).actions()` to inspect a path.
+A missing `next` returns null. `actions(int)` means an exact one-token key,
+not all words beginning with that token. `actionEntryCount()` and
+`actionNodeCount()` report populated cells and trie nodes (including the root).
+`actions()` explicitly materializes a diagnostic map of populated cells;
+normal parsing and conflict detection do not need that map.
+
+The representation preserves correlations between tokens; it does not replace
+words with independent token sets at each depth. Canonical states and used
+lookahead sets can still grow exponentially in the worst case. Prefix sharing
+avoids unused columns but does not eliminate that inherent cost. The FIRST(k)
+sets retain their existing trie representation; canonical items enumerate the
+lookahead words that actually occur.
+
+### LALR(k)
+
+`new LALRk(grammar, k)` or `new LALRk(canonicalLRk)` unions items in states
+with equal LR(0) cores, remaps transitions, and constructs the sparse table
+using the merged contexts. The canonical source is preserved. This first
+implementation constructs LR(k) before merging, so its peak construction
+memory still includes the canonical automaton.
+
+LALR(k) for k>1 is a known construction; see
+[Parr's dissertation, chapter 7, sections 7.4–7.5](https://www.antlr.org/papers/parr.phd.thesis.pdf).
+As with LALR(1), merging can introduce conflicts. In particular, the example
+above is LR(2) but this core-merged LALR(2) has shift/reduce on `a $`:
+the contexts after `c` and `b c` have been combined.
+Use `isConflictFree()` before recognizing input with the merged parser.
 
 ## Build and tests
 
@@ -123,3 +197,15 @@ grammar's LALR table equals the documented SLR table.
 `LRAlgorithmsTest` covers nullable productions and suffixes, EOF, recursion,
 conflicts, recognition, repeated construction, immutable lookahead words,
 and deliberate hash collisions.
+
+`LRkTest` covers the LR(2) example, a grammar requiring k=3, all EOF word
+lengths, nullable suffixes, recursion, k=1 compatibility, merging, and trie
+prefix sharing. A 63-terminal grammar at k=6 verifies that unused alphabet
+combinations do not become columns.
+
+`NaiveLRk` is a deliberately dense test-only implementation with independent
+set-based FIRST, closure, state discovery, and recognition. It enumerates all
+valid lookahead columns, including unused ones. `LRkOracleTest` compares its
+item sets, transitions, every ACTION cell, and conflicts against the sparse
+implementation for nine grammars at k=1,2,3. It also exhaustively compares short
+inputs against both implementations and known finite/recursive languages.
