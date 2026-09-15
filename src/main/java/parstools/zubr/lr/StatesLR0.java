@@ -1,18 +1,13 @@
 package parstools.zubr.lr;
 
 import parstools.zubr.grammar.Grammar;
-import parstools.zubr.grammar.Nonterminal;
 
 public class StatesLR0 extends States {
-    public StatesLR0(Grammar grammar) {
-        super(grammar);
-    }
+    public StatesLR0(Grammar grammar) { super(grammar); }
 
-    public void createStates(AbstractLR abstractLR) {
-        Nonterminal startNt = grammar.addStartNt();
-        ItemLR0 item = new ItemLR0(startNt.rules.getFirst(), 0);
+    public void createStates(AbstractLR parser) {
         State state = new StateLR0(this);
-        state.add(item);
-        super.createStates(abstractLR, state);
+        state.add(new ItemLR0(startRule, 0));
+        super.createStates(parser, state);
     }
 }

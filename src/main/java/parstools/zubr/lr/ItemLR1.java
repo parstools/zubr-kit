@@ -1,14 +1,16 @@
 package parstools.zubr.lr;
 
 import parstools.zubr.grammar.Rule;
-import parstools.zubr.grammar.Terminal;
-import parstools.zubr.set.TokenSet;
+import java.util.List;
 
-public class ItemLR1 extends ItemLR0 {
-    TokenSet ts;
-
-    ItemLR1(Rule rule, int dotPosition, TokenSet ts) {
-        super(rule, dotPosition);
-        this.ts = ts;
+/** One canonical LR(1) item; EOF is terminal index -1. */
+public class ItemLR1 extends ItemLRk {
+    public ItemLR1(Rule rule, int dotPosition, int terminal) {
+        super(rule, dotPosition, List.of(terminal));
     }
+
+    public int terminal() { return lookahead().getFirst(); }
+
+    @Override
+    public ItemLR1 goto_() { return new ItemLR1(rule, dotPosition + 1, terminal()); }
 }
