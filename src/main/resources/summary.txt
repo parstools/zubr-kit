@@ -1,0 +1,14 @@
+summary:
+ambig: 16
+LR(0): 23
+SLR: 19
+LR(1): 3
+LR(2): 5
+LR(3): 1
+LALR(2): 4
+LALR(3): 1
+notLR(7): 2
+LL(1): 39
+LL(2): 6
+LL(3): 1
+notLL(7): 7

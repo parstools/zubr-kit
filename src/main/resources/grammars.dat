@@ -1,27 +1,28 @@
-;from allstar-techreport
+;[LR(0)] [LL(1)] from allstar-techreport
 S -> A c
 S -> A d
 A -> a A
 A -> b
 
+;[LR(0)] [LL(1)]
 Expr -> Expr + Term
 Expr -> Term
 Term -> i
 
-; removed recursion
+;[SLR] [LL(1)]  removed recursion
 Expr -> Term Expr1
 Expr1 -> + Term Expr1
 Expr1 -> 
 Term -> i
          
-;https://cstheory.stackexchange.com/questions/6438/determine-if-a-ll2-grammar-is-strong
+;[LR(2)] [LALR(2)] [notLL(7)] https://cstheory.stackexchange.com/questions/6438/determine-if-a-ll2-grammar-is-strong
 ;grammar that is LL(2), but not strong LL(2)
 S -> a A a
 S -> b A b a
 A -> b
 A ->
 
-;https://cstheory.stackexchange.com/questions/6438/determine-if-a-ll2-grammar-is-strong
+;[LR(2)] [LALR(2)] [LL(2)] https://cstheory.stackexchange.com/questions/6438/determine-if-a-ll2-grammar-is-strong
 ;strong LL(2), no context needed
 S -> a A a
 S -> b A2 b a
@@ -30,7 +31,7 @@ A ->
 A2 -> b
 A2 ->
 
-;https://stackoverflow.com/questions/10634197/ll2-language-that-is-not-ll1
+;[LR(2)] [LALR(2)] [LL(2)] https://stackoverflow.com/questions/10634197/ll2-language-that-is-not-ll1
 ;S -> a S A | epsilon
 ;A -> a^k b S | c
 ;LL(2)
@@ -39,13 +40,13 @@ S ->
 A -> a b S
 A -> c
 
-;LL(3)
+;[LR(3)] [LALR(3)] [LL(3)] LL(3)
 S -> a S A
 S ->
 A -> a a b S
 A -> c
 
-;LL(*)
+;[ambig] LL(*)
 S -> a S C
 S ->
 C -> A b S
@@ -53,7 +54,7 @@ C -> c
 A -> A a
 A ->
 
-;LL(*)
+;[ambig] LL(*)
 ;if repeat a*, it doesn't know it is before or after b*
 ;if would be a*b+a*, will be LL(2)
 ;regular expression: a*b*a*
@@ -81,7 +82,7 @@ A ->
 B -> b B
 B ->
 
-;test with https://www.cs.princeton.edu/courses/archive/spring22/cos320/LL1/index.html
+;[LR(0)] [LL(1)] test with https://www.cs.princeton.edu/courses/archive/spring22/cos320/LL1/index.html
 ;https://cs.stackexchange.com/questions/93144/why-is-this-grammar-an-ll2-grammar
 S -> a a A
 A -> a A c
@@ -89,7 +90,7 @@ A -> b B c
 B -> b B c
 B -> b c 
 
-; solution 'dangling else' by L07SecondTry.pdf (17 LALR and 17 LR(1))
+;[SLR] [notLL(7)]  solution 'dangling else' by L07SecondTry.pdf (17 LALR and 17 LR(1))
 ;S=stmt, e=Expr, i=if, t=then, W=WithElse, o=Other statements
 S -> i e t S
 S -> i e t W e S
@@ -97,7 +98,7 @@ S -> o
 W -> i e t W e W
 W -> o
 
-; 'dangling else' - exact solution by TechnikiKompilacji.pdf (13 LALR and 20 LR(1))
+;[SLR] [notLL(7)]  'dangling else' - exact solution by TechnikiKompilacji.pdf (13 LALR and 20 LR(1))
 ;S = stmt, M = matched_stmt,U=unmatched_stmt,o = other,
 ;i=if, e-expr, t=then (bez 'S->o')
 S -> M
@@ -107,13 +108,13 @@ M -> o
 U -> i e t S
 U -> i e t M e U
 
-;if .. then .. else - simple (9 states LALR and 16 LR(1))
+;[ambig] if .. then .. else - simple (9 states LALR and 16 LR(1))
 ;correct if choosed S7, if choosed reduction - even is error analysis ibtibtses
 S -> i b t S e S
 S -> i b t S
 S -> s
 
-;else L-long s else, S- short bez else, G-general (conflict LR(1))
+;[ambig] else L-long s else, S- short bez else, G-general (conflict LR(1))
 G -> S
 G -> L
 G -> s
@@ -121,24 +122,24 @@ S -> i b t G
 L -> i b t L e G
 L -> s
 
-; + and * equal priority, but * has right-hand connection
+;[ambig]  + and * equal priority, but * has right-hand connection
 ; warning, it can't be such defined, because conflict
 E -> E + i
 E -> i * E
 E -> i
 
-; + and * equal priority
+;[LR(0)] [LL(1)]  + and * equal priority
 E -> E + i
 E -> E * i
 E -> i
 
-;7.17 page. 203 simplified version grammars from 7.12a, chain elimination
+;[SLR] [LL(1)] 7.17 page. 203 simplified version grammars from 7.12a, chain elimination
 E -> E + T
 E -> T
 T -> T * i
 T -> i
 
-;typical grammar not LR(0), from 7.12 page.195 Compiler Construction : Waite, William M., Goos, Gerhard
+;[SLR] [LL(1)] typical grammar not LR(0), from 7.12 page.195 Compiler Construction : Waite, William M., Goos, Gerhard
 E -> E + T
 E -> T
 T -> T * F
@@ -146,38 +147,38 @@ T -> F
 F -> ( E )
 F -> i
 
-;left recursion
+;[SLR] [LL(1)] left recursion
 E -> E + T
 E -> T
 T -> T * F
 T -> F
 F -> i
 
-;left recursion
+;[ambig] left recursion
 ;ambiguous with different priority
 E -> E + E
 E -> E * E
 E -> i
 
-;More extended example ambiguous from Node21 from Lambda
+;[ambig] More extended example ambiguous from Node21 from Lambda
 E -> E + E
 E -> E * E
 E -> ( E )
 E -> i
 E -> n
 
-;is not SLR - example from Ch4b.pdf, 14 states LR1, 10 states Lalr
+;[LR(1)] [notLL(7)] is not SLR - example from Ch4b.pdf, 14 states LR1, 10 states Lalr
 S -> L = R
 S -> R
 L -> * R
 L -> i
 R -> L
 
-;supposedly from http://kompilatory.agh.edu.pl/ is not LR(0)
+;[LR(0)] [LL(1)] supposedly from http://kompilatory.agh.edu.pl/ is not LR(0)
 S -> S a
 S -> a
 
-;LR(1) has the same number of states as Lalr
+;[LR(1)] [LL(2)] LR(1) has the same number of states as Lalr
 ;grammar not SLR(1) but LALR(1) 7.15 page 200
 ;can be added start production Z->A
 A -> a B b
@@ -186,12 +187,12 @@ A -> b B c
 A -> b d d
 B -> d
 
-;from notebook Lalr(1) from canonic but is LR(0), is LL(1)
+;[LR(0)] [LL(1)] from notebook Lalr(1) from canonic but is LR(0), is LL(1)
 S -> C C
 C -> e C
 C -> d
 
-; is LL(1)
+;[SLR] [LL(1)]  is LL(1)
 ; from notebook page 56 and http://www.jambe.co.nz/UNI/FirstAndFollowSets.html
 ; as example for First and Follow
 ; changes: E'->G, T'->U, no eps,id->i
@@ -204,39 +205,39 @@ U ->
 F -> ( E )
 F -> i
 
-;from http://en.wikipedia.org/wiki/LR_parser simple not LR(0) reduction-reduction conflict, is SLR
+;[SLR] [LL(2)] from http://en.wikipedia.org/wiki/LR_parser simple not LR(0) reduction-reduction conflict, is SLR
 E -> A 1
 E -> B 2
 A -> 1
 B -> 1
 
-;from http://en.wikipedia.org/wiki/LR_parser simple not LR(0) shift-reduction conflict, is SLR
+;[SLR] [LL(1)] from http://en.wikipedia.org/wiki/LR_parser simple not LR(0) shift-reduction conflict, is SLR
 E -> 1 E
 E -> 1
 
-;from http://en.wikipedia.org/wiki/LR_parser which I translated
+;[LR(0)] [LL(1)] from http://en.wikipedia.org/wiki/LR_parser which I translated
 E -> E * B
 E -> E + B
 E -> B
 B -> 0
 B -> 1
 
-;book page 148 LR(2) i LL(3)
+;[LR(2)] [notLL(7)] book page 148 LR(2) i LL(3)
 X -> Y
 X -> b Y a
 Y -> c
 Y -> c a
 
-;LALR(1) has a shift/reduce conflict; LALR(2) is conflict-free. Both have 6 states.
+;[LR(2)] [LALR(2)] [LL(2)] LALR(1) has a shift/reduce conflict; LALR(2) is conflict-free. Both have 6 states.
 S -> A a
 A -> c
 A -> c a
 
-;2-4-Parser-LR(1)-czesc-2.pdf
+;[LR(0)] [LL(1)] 2-4-Parser-LR(1)-czesc-2.pdf
 S -> S a S b
 S ->
 
-;4 second example for LR(1)- it can'be be simplified to lalr(1)
+;[LR(1)] [LL(2)] 4 second example for LR(1)- it can'be be simplified to lalr(1)
 ;conflict R-R
 ;notebook MetTransl page 86
 S -> a A d
@@ -246,7 +247,7 @@ S -> b A e
 A -> c
 B -> c
 
-; if will error?
+;[SLR] [LL(1)]  if will error?
 ; <HTML> -> <DocType Opt> '<html' <Parameters> '>' <Head> <Frameset> <Body> '</html>'
 E -> d H F B
 H -> H h
@@ -256,15 +257,15 @@ F ->
 B -> B b
 B ->
 
-;big stack for language +++++...
+;[SLR] [LL(1)] big stack for language +++++...
 E -> + E
 E ->
 
-;small stack for language +++++...
+;[LR(0)] [LL(1)] small stack for language +++++...
 E -> E +
 E ->
 
-;regular expression definition
+;[SLR] [LL(1)] regular expression definition
 E -> C
 E -> E | C
 C -> F
@@ -275,7 +276,7 @@ F -> U +
 U -> c
 U -> ( E )
 
-;example to test error recovery
+;[SLR] [LL(1)] example to test error recovery
 ;bi=i+i+ii, next continuations ;,+,e (e it's out because after is i)
 ;best see - what is after i, = or +
 E -> b C e
@@ -285,23 +286,23 @@ R -> i = S
 S -> S + i
 S -> i
 
-;simpler example to error recovery
+;[LR(0)] [LL(1)] simpler example to error recovery
 ;bii
 E -> b C e
 C -> C ; i
 C -> i
 
-; strings accc..ccccb or bccc..ccca - for error testing
+;[LR(0)] [LL(1)]  strings accc..ccccb or bccc..ccca - for error testing
 E -> a C b
 E -> b C a
 C -> C c
 C ->
 
-;example recovery with replacement, for example error in keyword then
+;[LR(0)] [LL(1)] example recovery with replacement, for example error in keyword then
 ;iaaaea
 E -> i a t a e a
 
-;first version simplan language
+;[SLR] [LL(1)] first version simplan language
 E -> D B
 D ->
 D -> L ;
@@ -320,17 +321,17 @@ T -> T / F
 F -> i
 F -> n
 
-;right and left operator
+;[ambig] right and left operator
 E -> & E
 E -> E + E
 E -> i
 
-;two right operators - no conflict
+;[LR(0)] [LL(1)] two right operators - no conflict
 E -> & E
 E -> ^ E
 E -> i
 
-;two with lower, one with higher and one with highest
+;[ambig] two with lower, one with higher and one with highest
 E -> E O E
 E -> i
 O -> +
@@ -338,27 +339,27 @@ O -> -
 O -> *
 O -> ^
 
-;two with lower, one with higher and one with highest
+;[ambig] two with lower, one with higher and one with highest
 E -> E + E
 E -> E - E
 E -> E * E
 E -> E ^ E
 E -> i
 
-;ambiguous with two equals
+;[ambig] ambiguous with two equals
 E -> E + E
 E -> E - E
 E -> i
 
-;ambiguous with one operator
+;[ambig] ambiguous with one operator
 E -> E + E
 E -> i
 
-;the simplest ambiguous
+;[ambig] the simplest ambiguous
 S -> S S
 S -> i
 
-;3
+;[SLR] [LL(1)] 3
 ;for calc
 E -> E + T
 E -> E - T
@@ -380,50 +381,52 @@ F -> i
 F -> i ( E )
 F -> c
 
+;[LR(0)] [LL(1)]
 C -> C i
 C -> i
 
-; chain
+;[LR(0)] [LL(1)]  chain
 S -> S E
 S -> E
 E -> F
 F -> T
 T -> i
 
+;[LR(0)] [LL(1)]
 S -> S i
 S -> i
 
-;sample LR(0) 7.11 page 194
+;[LR(0)] [LL(1)] sample LR(0) 7.11 page 194
 E -> E + F
 E -> F
 F -> i
 F -> ( E )
 
-;language: +*+*..*+
+;[LR(0)] [LL(1)] language: +*+*..*+
 A -> B +
 B -> A *
 B ->
 ;sample,that you should not limit yourself only to the first production symbol
 ;should be {+} for first
 
-;sample from gatevidyalay for left recursion
+;[LR(0)] [LL(1)] sample from gatevidyalay for left recursion
 A -> A B d
 A -> A a
 A -> a
 B -> B e
 B -> b
 
-;sample from gatevidyalay for left recursion
+;[LR(0)] [LL(1)] sample from gatevidyalay for left recursion
 S -> ( L )
 S -> a
 L -> L , S
 L -> S
 
-;sample from gatevidyalay for left recursion
+;[notLR(7)] [notLL(7)] sample from gatevidyalay for left recursion
 S -> S 0 S 1 S
 S -> 0 1
 
-;sample from gatevidyalay for left recursion
+;[SLR] [LL(1)] sample from gatevidyalay for left recursion
 S -> A
 A -> A d
 A -> A e
@@ -432,11 +435,11 @@ A -> a c
 B -> b B c
 B -> f
 
-;sample from gatevidyalay for left recursion
+;[LR(0)] [LL(1)] sample from gatevidyalay for left recursion
 A -> A A a
 A -> b
 
-;sample from gatevidyalay for indirect left recursion
+;[LR(0)] [LL(1)] sample from gatevidyalay for indirect left recursion
 A -> B a
 A -> A a
 A -> c
@@ -444,7 +447,7 @@ B -> B b
 B -> A b
 B -> d
 
-;sample from gatevidyalay for indirect left recursion
+;[ambig] sample from gatevidyalay for indirect left recursion
 X -> X S b
 X -> S a
 X -> b
@@ -452,43 +455,43 @@ S -> S b
 S -> X a
 S -> a
 
-;sample from gatevidyalay for indirect left recursion
+;[SLR] [LL(1)] sample from gatevidyalay for indirect left recursion
 S -> A a
 S -> b
 A -> A c
 A -> S d
 A ->
 
-;sample from gatevidyalay for left factoring
+;[ambig] sample from gatevidyalay for left factoring
 S -> i E t S
 S -> i E t S e S
 S -> a
 E -> b
 
-;sample from gatevidyalay for left factoring
+;[LR(0)] [LL(1)] sample from gatevidyalay for left factoring
 A -> a A B
 A -> a B c
 A -> a A c
 
-;sample from gatevidyalay for left factoring
+;[notLR(7)] [notLL(7)] sample from gatevidyalay for left factoring
 S -> b S S a a S
 S -> b S S a S b
 S -> b S b
 S -> a
 
-;sample from gatevidyalay for left factoring
+;[ambig] sample from gatevidyalay for left factoring
 S -> a S S b S
 S -> a S a S b
 S -> a b b
 S -> b
 
-;sample from gatevidyalay for left factoring
+;[SLR] [LL(1)] sample from gatevidyalay for left factoring
 S -> a
 S -> a b
 S -> a b c
 S -> a b c d
 
-;sample from gatevidyalay for left factoring
+;[SLR] [LL(1)] sample from gatevidyalay for left factoring
 S -> a A d
 S -> a B
 A -> a
