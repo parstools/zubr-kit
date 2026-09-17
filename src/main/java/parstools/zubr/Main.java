@@ -4,6 +4,11 @@ import parstools.zubr.generator.Generator;
 import parstools.zubr.generator.RuleOrder;
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.ll.ParsingTable;
+import parstools.zubr.lr.LALRk;
+import parstools.zubr.lr.LR0;
+import parstools.zubr.lr.LR1;
+import parstools.zubr.lr.LRk;
+import parstools.zubr.lr.SLR;
 import parstools.zubr.set.Sequence;
 import parstools.zubr.set.SetContainer;
 import parstools.zubr.set.TokenSet;
@@ -16,11 +21,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import static java.lang.System.out;
 
 public class Main {
+    private static final int MAX_LOOKAHEAD = 7;
+    private static final long CLASSIFICATION_TIMEOUT_NANOS = Duration.ofSeconds(30).toNanos();
+    private static final Pattern GRAMMAR_LABEL = Pattern.compile(
+            "(?:\\[(?:notLALR|LALR|notLR|LR|SLR|notLL|LL)[^\\]\\t ]{0,5}\\]?|\\[ambig\\])[ \\t]?");
+
     static void makeKTest(List<String> lines) throws IOException {
         int n = 0;
         int counter = 0;
@@ -131,7 +144,7 @@ public class Main {
 
     static int testAmbig(Grammar grammar, List<String> ambigInfo) {
         for (int len = 1; len <=12; len++) {
-            int res = testAmbig(grammar, len, 1000, ambigInfo);
+            int res = testAmbig(grammar, len, 5000, ambigInfo);
             if (res < 0)
                 return res;
         }
@@ -213,7 +226,7 @@ public class Main {
                     grammar.factorization(1);
                     ParsingTable table = new ParsingTable(grammar);
                     int resk = -1;
-                    for (int k = 1; k <= 9; k++) {
+                    for (int k = 1; k <= MAX_LOOKAHEAD; k++) {
                         boolean res = table.createLL(k);
                         if (res) {
                             resk = k;
@@ -230,6 +243,210 @@ public class Main {
             n++;
         }
         out.println(counter + " grammars");
+    }
+
+    /**
+     * Classifies every grammar in grammars.dat and writes the preserved source,
+     * with refreshed labels, to grammars_result.dat.
+     */
+    static void labelGrammars() throws IOException {
+        Path input = Paths.get("src/main/resources/grammars.dat");
+        Path output = Paths.get("src/main/resources/grammars_result.dat");
+        List<String> lines = Files.readAllLines(input, StandardCharsets.UTF_8);
+        List<String> result = new ArrayList<>();
+        int totalGrammars = countNonEmptyBlocks(lines);
+        Map<String, Integer> summary = new LinkedHashMap<>();
+        summary.put("[ambig]", 0);
+        summary.put("[LR(0)]", 0);
+        summary.put("[SLR]", 0);
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++)
+            summary.put("[LR(" + k + ")]", 0);
+        for (int k = 2; k <= MAX_LOOKAHEAD; k++)
+            summary.put("[LALR(" + k + ")]", 0);
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++)
+            summary.put("[notLR(" + k + ")]", 0);
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++)
+            summary.put("[LL(" + k + ")]", 0);
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++)
+            summary.put("[notLL(" + k + ")]", 0);
+        int grammarCount = 0;
+        int n = 0;
+        while (n < lines.size()) {
+            if (lines.get(n).trim().isEmpty()) {
+                result.add(lines.get(n++));
+                continue;
+            }
+            List<String> block = new ArrayList<>();
+            while (n < lines.size() && !lines.get(n).trim().isEmpty())
+                block.add(lines.get(n++));
+            out.printf("%d/%d", grammarCount + 1, totalGrammars);
+            out.flush();
+            List<String> labeled = labelGrammar(block, stage -> {
+                out.print(" " + stage);
+                out.flush();
+            });
+            result.addAll(labeled);
+            String firstComment = firstComment(labeled);
+            summary.replaceAll((label, count) -> firstComment.contains(label) ? count + 1 : count);
+            grammarCount++;
+            out.println();
+        }
+        Files.write(output, result, StandardCharsets.UTF_8);
+        out.println(grammarCount + " grammars written to " + output);
+        out.println("summary:");
+        summary.forEach((label, count) -> {
+            if (count > 0)
+                out.printf("%s: %d%n", label.substring(1, label.length() - 1), count);
+        });
+    }
+
+    private static int countNonEmptyBlocks(List<String> lines) {
+        int count = 0;
+        boolean insideBlock = false;
+        for (String line : lines) {
+            if (line.trim().isEmpty()) {
+                insideBlock = false;
+            } else if (!insideBlock) {
+                count++;
+                insideBlock = true;
+            }
+        }
+        return count;
+    }
+
+    private static String firstComment(List<String> block) {
+        return block.stream()
+                .map(String::trim)
+                .filter(line -> line.startsWith(";"))
+                .findFirst()
+                .orElse("");
+    }
+
+    static List<String> labelGrammar(List<String> block) {
+        return labelGrammar(block, ignored -> {});
+    }
+
+    private static List<String> labelGrammar(List<String> block, Consumer<String> progress) {
+        List<String> cleaned = new ArrayList<>(block.size() + 1);
+        List<String> grammarLines = new ArrayList<>();
+        int firstComment = -1;
+        for (String line : block) {
+            if (line.trim().startsWith(";")) {
+                if (firstComment < 0)
+                    firstComment = cleaned.size();
+                cleaned.add(cleanGrammarLabels(line));
+            } else {
+                cleaned.add(line);
+                grammarLines.add(line.trim());
+            }
+        }
+        if (grammarLines.isEmpty())
+            return cleaned;
+
+        Grammar ambiguityGrammar = new Grammar(grammarLines);
+        List<String> ambigInfo = new ArrayList<>();
+        String labels;
+        if (testAmbig(ambiguityGrammar, ambigInfo) < 0) {
+            progress.accept("ambig");
+            labels = "[ambig]";
+        } else {
+            Grammar lrGrammar = new Grammar(grammarLines);
+            Map<Integer, LRk> canonicalByK = new HashMap<>();
+            long lrStartedAt = System.nanoTime();
+            String lrLabel = classifyLR(lrGrammar, canonicalByK, lrStartedAt, progress);
+            String lalrLabel = classifyLALR(lrLabel, canonicalByK, progress);
+            String llLabel = classifyLL(new Grammar(grammarLines), progress);
+            labels = String.join(" ", lalrLabel.isEmpty()
+                    ? List.of(lrLabel, llLabel)
+                    : List.of(lrLabel, lalrLabel, llLabel));
+        }
+
+        if (firstComment < 0) {
+            cleaned.addFirst(";" + labels);
+        } else {
+            String comment = cleaned.get(firstComment);
+            String text = comment.substring(comment.indexOf(';') + 1);
+            String separator = text.isEmpty() || Character.isWhitespace(text.charAt(0)) ? "" : " ";
+            cleaned.set(firstComment, ";" + labels + separator + text);
+        }
+        return cleaned;
+    }
+
+    static String cleanGrammarLabels(String comment) {
+        return GRAMMAR_LABEL.matcher(comment).replaceAll("");
+    }
+
+    private static String classifyLR(Grammar grammar, Map<Integer, LRk> canonicalByK,
+                                     long startedAt, Consumer<String> progress) {
+        progress.accept("LR(0)");
+        if (new LR0(grammar).isConflictFree())
+            return "[LR(0)]";
+        progress.accept("SLR");
+        if (new SLR(grammar).isConflictFree())
+            return "[SLR]";
+        progress.accept("LR(1)");
+        if (new LR1(grammar).isConflictFree())
+            return "[LR(1)]";
+        int lastTestedK = 1;
+        for (int k = 2; k <= MAX_LOOKAHEAD; k++) {
+            if (classificationTimedOut(startedAt))
+                break;
+            progress.accept("LR(" + k + ")");
+            LRk lr = canonicalLR(grammar, canonicalByK, k);
+            lastTestedK = k;
+            if (lr.isConflictFree())
+                return "[LR(" + k + ")]";
+        }
+        return "[notLR(" + lastTestedK + ")]";
+    }
+
+    private static String classifyLALR(String lrLabel, Map<Integer, LRk> canonicalByK,
+                                       Consumer<String> progress) {
+        for (int k = 2; k <= MAX_LOOKAHEAD; k++) {
+            if (!lrLabel.equals("[LR(" + k + ")]"))
+                continue;
+            LRk canonical = canonicalByK.get(k);
+            if (canonical == null)
+                throw new IllegalStateException("Missing canonical LR(" + k + ") automaton");
+            progress.accept("LALR(" + k + ")");
+            return new LALRk(canonical).isConflictFree() ? "[LALR(" + k + ")]" : "";
+        }
+        return "";
+    }
+
+    private static LRk canonicalLR(Grammar grammar, Map<Integer, LRk> canonicalByK, int k) {
+        LRk canonical = canonicalByK.get(k);
+        if (canonical == null) {
+            canonical = new LRk(grammar, k);
+            canonicalByK.put(k, canonical);
+        }
+        return canonical;
+    }
+
+    private static boolean classificationTimedOut(long startedAt) {
+        return System.nanoTime() - startedAt >= CLASSIFICATION_TIMEOUT_NANOS;
+    }
+
+    private static String classifyLL(Grammar grammar, Consumer<String> progress) {
+        progress.accept("recursion");
+        grammar.eliminationRecursion();
+        if (grammar.stayRecursion)
+            return "[notLL(" + MAX_LOOKAHEAD + ")]";
+        progress.accept("factorization");
+        grammar.factorization(1);
+        ParsingTable table = new ParsingTable(grammar);
+        long startedAt = System.nanoTime();
+        int lastTestedK = 0;
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++) {
+            if (classificationTimedOut(startedAt))
+                break;
+            progress.accept("LL(" + k + ")");
+            boolean isLL = table.createLL(k);
+            lastTestedK = k;
+            if (isLL)
+                return "[LL(" + k + ")]";
+        }
+        return "[notLL(" + Math.max(lastTestedK, 1) + ")]";
     }
 
     private static void testK4grammar(Grammar grammar, List<String> expectLines) {
@@ -457,7 +674,7 @@ public class Main {
         String currentDir = System.getProperty("user.dir");
         System.out.println("current dir: " + currentDir);
         try {
-            readAllGrammars();
+            labelGrammars();
         } catch (IOException e) {
             e.printStackTrace();
         }
