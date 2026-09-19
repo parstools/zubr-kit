@@ -4,6 +4,7 @@ import parstools.zubr.generator.Generator;
 import parstools.zubr.generator.RuleOrder;
 import parstools.zubr.grammar.Grammar;
 import parstools.zubr.ll.ParsingTable;
+import parstools.zubr.lr.LALR;
 import parstools.zubr.lr.LALRk;
 import parstools.zubr.lr.LR0;
 import parstools.zubr.lr.LR1;
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
 import static java.lang.System.out;
 
 public class Main {
-    private static final int MAX_LOOKAHEAD = 7;
+    private static final int MAX_LOOKAHEAD = 6;
     private static final long CLASSIFICATION_TIMEOUT_NANOS = Duration.ofSeconds(30).toNanos();
     private static final Pattern GRAMMAR_LABEL = Pattern.compile(
             "(?:\\[(?:notLALR|LALR|notLR|LR|SLR|notLL|LL)[^\\]\\t ]{0,5}\\]?|\\[ambig\\])[ \\t]?");
@@ -261,8 +262,10 @@ public class Main {
         summary.put("[SLR]", 0);
         for (int k = 1; k <= MAX_LOOKAHEAD; k++)
             summary.put("[LR(" + k + ")]", 0);
-        for (int k = 2; k <= MAX_LOOKAHEAD; k++)
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++)
             summary.put("[LALR(" + k + ")]", 0);
+        for (int k = 1; k <= MAX_LOOKAHEAD; k++)
+            summary.put("[notLALR(" + k + ")]", 0);
         for (int k = 1; k <= MAX_LOOKAHEAD; k++)
             summary.put("[notLR(" + k + ")]", 0);
         for (int k = 1; k <= MAX_LOOKAHEAD; k++)
@@ -351,10 +354,10 @@ public class Main {
             labels = "[ambig]";
         } else {
             Grammar lrGrammar = new Grammar(grammarLines);
-            Map<Integer, LRk> canonicalByK = new HashMap<>();
+            CanonicalLRs canonical = new CanonicalLRs(lrGrammar);
             long lrStartedAt = System.nanoTime();
-            String lrLabel = classifyLR(lrGrammar, canonicalByK, lrStartedAt, progress);
-            String lalrLabel = classifyLALR(lrLabel, canonicalByK, progress);
+            String lrLabel = classifyLR(lrGrammar, canonical, lrStartedAt, progress);
+            String lalrLabel = classifyLALR(lrLabel, canonical, progress);
             String llLabel = classifyLL(new Grammar(grammarLines), progress);
             labels = String.join(" ", lalrLabel.isEmpty()
                     ? List.of(lrLabel, llLabel)
@@ -376,7 +379,7 @@ public class Main {
         return GRAMMAR_LABEL.matcher(comment).replaceAll("");
     }
 
-    private static String classifyLR(Grammar grammar, Map<Integer, LRk> canonicalByK,
+    private static String classifyLR(Grammar grammar, CanonicalLRs canonical,
                                      long startedAt, Consumer<String> progress) {
         progress.accept("LR(0)");
         if (new LR0(grammar).isConflictFree())
@@ -385,14 +388,14 @@ public class Main {
         if (new SLR(grammar).isConflictFree())
             return "[SLR]";
         progress.accept("LR(1)");
-        if (new LR1(grammar).isConflictFree())
+        if (canonical.lr1().isConflictFree())
             return "[LR(1)]";
         int lastTestedK = 1;
         for (int k = 2; k <= MAX_LOOKAHEAD; k++) {
             if (classificationTimedOut(startedAt))
                 break;
             progress.accept("LR(" + k + ")");
-            LRk lr = canonicalLR(grammar, canonicalByK, k);
+            LRk lr = canonical.lrk(k);
             lastTestedK = k;
             if (lr.isConflictFree())
                 return "[LR(" + k + ")]";
@@ -400,27 +403,51 @@ public class Main {
         return "[notLR(" + lastTestedK + ")]";
     }
 
-    private static String classifyLALR(String lrLabel, Map<Integer, LRk> canonicalByK,
+    private static String classifyLALR(String lrLabel, CanonicalLRs canonical,
                                        Consumer<String> progress) {
-        for (int k = 2; k <= MAX_LOOKAHEAD; k++) {
-            if (!lrLabel.equals("[LR(" + k + ")]"))
-                continue;
-            LRk canonical = canonicalByK.get(k);
-            if (canonical == null)
-                throw new IllegalStateException("Missing canonical LR(" + k + ") automaton");
-            progress.accept("LALR(" + k + ")");
-            return new LALRk(canonical).isConflictFree() ? "[LALR(" + k + ")]" : "";
-        }
-        return "";
+        int k = lalrLookahead(lrLabel);
+        if (k < 1)
+            return "";
+        progress.accept("LALR(" + k + ")");
+        boolean conflictFree = k == 1
+                ? new LALR(canonical.lr1()).isConflictFree()
+                : new LALRk(canonical.lrk(k)).isConflictFree();
+        return conflictFree ? "[LALR(" + k + ")]" : "[notLALR(" + k + ")]";
     }
 
-    private static LRk canonicalLR(Grammar grammar, Map<Integer, LRk> canonicalByK, int k) {
-        LRk canonical = canonicalByK.get(k);
-        if (canonical == null) {
-            canonical = new LRk(grammar, k);
-            canonicalByK.put(k, canonical);
+    private static int lalrLookahead(String lrLabel) {
+        if (lrLabel.equals("[LR(0)]") || lrLabel.equals("[SLR]") || lrLabel.equals("[LR(1)]"))
+            return 1;
+        for (int k = 2; k <= MAX_LOOKAHEAD; k++) {
+            if (lrLabel.equals("[LR(" + k + ")]"))
+                return k;
         }
-        return canonical;
+        return -1;
+    }
+
+    private static final class CanonicalLRs {
+        private final Grammar grammar;
+        private final Map<Integer, LRk> byK = new HashMap<>();
+        private LR1 lr1;
+
+        private CanonicalLRs(Grammar grammar) {
+            this.grammar = grammar;
+        }
+
+        private LR1 lr1() {
+            if (lr1 == null)
+                lr1 = new LR1(grammar);
+            return lr1;
+        }
+
+        private LRk lrk(int k) {
+            LRk parser = byK.get(k);
+            if (parser == null) {
+                parser = new LRk(grammar, k);
+                byK.put(k, parser);
+            }
+            return parser;
+        }
     }
 
     private static boolean classificationTimedOut(long startedAt) {

@@ -13,6 +13,7 @@ class MainTest {
         assertEquals(";description tail", Main.cleanGrammarLabels(
                 ";[LR(1)] description [notLR(9)] [SLR] [LL(2)] [notLL(9)] tail"));
         assertEquals(";description", Main.cleanGrammarLabels(";[LALR(2)] description"));
+        assertEquals(";description", Main.cleanGrammarLabels(";[notLALR(2)] description"));
         assertEquals(";description", Main.cleanGrammarLabels(";[ambig] description"));
         assertEquals(";description", Main.cleanGrammarLabels(";[LRabcd] description"));
     }
@@ -26,14 +27,14 @@ class MainTest {
 
         List<String> result = Main.labelGrammar(input);
 
-        assertEquals(";[LR(0)] [LL(1)] old description", result.get(0));
+        assertEquals(";[LR(0)] [LALR(1)] [LL(1)] old description", result.get(0));
         assertEquals(";second comment", result.get(1));
         assertEquals("S -> a", result.get(2));
     }
 
     @Test
     void addsACommentWhenTheGrammarHasNone() {
-        assertEquals(List.of(";[LR(0)] [LL(1)]", "S -> token"),
+        assertEquals(List.of(";[LR(0)] [LALR(1)] [LL(1)]", "S -> token"),
                 Main.labelGrammar(List.of("S -> token")));
     }
 
@@ -46,7 +47,22 @@ class MainTest {
                 "Y -> c",
                 "Y -> c a"));
 
-        assertEquals(";[LR(2)] [notLL(7)] book page 148", result.getFirst());
+        assertEquals(";[LR(2)] [notLALR(2)] [notLL(6)] book page 148", result.getFirst());
+    }
+
+    @Test
+    void labelsAnLrOneGrammarWithLalrConflict() {
+        List<String> result = Main.labelGrammar(List.of(
+                ";canonical LR(1), but not LALR(1)",
+                "S -> a A d",
+                "S -> a B e",
+                "S -> b B d",
+                "S -> b A e",
+                "A -> c",
+                "B -> c"));
+
+        assertEquals(";[LR(1)] [notLALR(1)] [LL(2)] canonical LR(1), but not LALR(1)",
+                result.getFirst());
     }
 
     @Test
