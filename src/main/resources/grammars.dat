@@ -498,3 +498,77 @@ A -> a
 A -> a b
 B -> c c d
 B -> d d c
+
+;[LR(2)] [LALR(2)] [LL(2)] Denny-Malloy IELR 2010 Fig. 1, p. 945; DOI 10.1016/j.scico.2009.08.001
+;Raw unambiguous grammar: aaa, aaaa, bab, baab; non-LR(1), LR(2).
+;Paper policy: token a is left-associative (reduce the S/R conflict).
+;Canonical LR(1) with that policy accepts aaa,bab,baab; LALR also loses baab.
+;Policy is documentation only: this corpus reader does not execute precedence.
+S -> a A a
+S -> b A b
+A -> a
+A -> a a
+
+;[ambig] Denny-Malloy IELR 2010 Fig. 2, p. 945; DOI 10.1016/j.scico.2009.08.001
+;Ambiguous: baaa has two trees. Preserve production order for future R/R policy tests.
+;Paper uses the earlier production for unresolved R/R conflicts.
+;IELR preserves canonical conflict resolution; it does not make this grammar LR(1).
+S -> a A a
+S -> a B b
+S -> a C c
+S -> b A b
+S -> b B a
+S -> b C a
+A -> a a
+B -> a a
+C -> a a
+
+;[ambig] Denny-Malloy IELR 2010 Fig. 3, p. 953; DOI 10.1016/j.scico.2009.08.001
+;Ambiguous; Fig. 2 with the final token of productions 2 and 3 changed to a.
+;Preserve production order: default earlier-rule R/R resolution is significant.
+;Tests mutated conflicts: canonical policy accepts baaa, the studied Menhir did not.
+S -> a A a
+S -> a B a
+S -> a C a
+S -> b A b
+S -> b B a
+S -> b C a
+A -> a a
+B -> a a
+C -> a a
+
+;[ambig] Denny-Malloy IELR 2010 Fig. 4, p. 954; DOI 10.1016/j.scico.2009.08.001
+;Ambiguous: aaa has two trees. Pager vs the token-wise Menhir compatibility test.
+;An existing R/R conflict on a must not justify a new R/R conflict on b.
+;Preserve production order for future earlier-rule conflict resolution tests.
+S -> a A a
+S -> a A b
+S -> a B a
+S -> b A a
+S -> b B b
+A -> a
+B -> a
+
+;[LR(2)] [LALR(2)] [LL(2)] Denny-Malloy IELR 2010 Fig. 5, p. 955; DOI 10.1016/j.scico.2009.08.001
+;Goto follows, nullable rules and predecessor splitting (Tables 4 and 5).
+;Paper policy: production 9 (E -> epsilon) has higher precedence than token a.
+;Policy is documentation only; classifications apply to the raw grammar below.
+S -> a A B a
+S -> b A B b
+A -> a C D E
+B -> c
+B ->
+C -> D
+D -> a
+E -> a
+E ->
+
+;[LR(1)] [LALR(1)] [LL(2)] Denny-Malloy IELR 2010 Fig. 6, p. 959; DOI 10.1016/j.scico.2009.08.001
+;Auxiliary example for goto follows through nullable chains, not an IELR benchmark.
+S -> a A a
+S -> a a b
+S -> b A b
+A -> B C
+B -> a
+C -> D
+D ->
